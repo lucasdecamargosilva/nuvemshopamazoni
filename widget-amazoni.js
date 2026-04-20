@@ -688,7 +688,7 @@
                         <img
                             src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp"
                             alt="AMAZONI GLASSES"
-                            style="height:30px;width:auto;filter:brightness(0);"
+                            style="height:60px;width:auto;filter:brightness(0);"
                         />
                     </div>
                     <div id="q-step-upload">
