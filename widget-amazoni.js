@@ -131,6 +131,8 @@
             display: flex; align-items: center; justify-content: center;
             filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
             animation: q-shake 3s infinite;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .q-btn-trigger-ia:hover { filter: drop-shadow(0 4px 12px rgba(0,0,0,0.28)); }
         .q-btn-trigger-ia svg { width: 100%; height: 100%; overflow: visible; }
@@ -156,6 +158,8 @@
             transition: background 0.3s, color 0.3s;
             margin-bottom: 8px;
             box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .q-btn-inline-provador:hover { background: #000; color: #fff; }
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
@@ -1004,9 +1008,35 @@
 
         openBtn.addEventListener('click', handleTriggerClick, true);
 
+        // Mobile: Swiper/slider do tema consome touchmove e o click nunca dispara.
+        // Tratamos touchstart+touchend como tap quando o dedo não se moveu.
+        let touchStartX = 0, touchStartY = 0, touchFired = false;
+        function bindTouch(el) {
+            el.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                touchFired = false;
+                const t = e.touches[0];
+                touchStartX = t.clientX; touchStartY = t.clientY;
+            }, { passive: true, capture: true });
+            el.addEventListener('touchend', (e) => {
+                const t = e.changedTouches[0];
+                const dx = Math.abs(t.clientX - touchStartX);
+                const dy = Math.abs(t.clientY - touchStartY);
+                if (dx < 10 && dy < 10) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    touchFired = true;
+                    handleTriggerClick(e);
+                }
+            }, { passive: false, capture: true });
+        }
+        bindTouch(openBtn);
+        bindTouch(inlineBtn);
+
         // Delegação global como fallback — captura cliques em qualquer instância
         // dos botões (selo ou inline), mesmo que o tema re-renderize o DOM.
         document.addEventListener('click', function (e) {
+            if (touchFired) { touchFired = false; return; }
             const t = e.target && e.target.closest && e.target.closest('.q-btn-trigger-ia, .q-btn-inline-provador');
             if (t) handleTriggerClick(e);
         }, true);
