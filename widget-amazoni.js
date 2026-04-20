@@ -806,10 +806,7 @@
         openBtn.innerHTML = stampImageHTML;
 
 
-        // IMPORTANTE: containers SEM swiper vêm primeiro — no mobile, se o selo
-        // cai dentro de `.js-product-slide` (slide do Swiper), o gesto de swipe
-        // do tema engole o tap e o botão nunca abre.
-        const imgContainers = ['[data-store^="product-image-"]', '.product-image-column', '.product__media-wrapper', '.product-gallery__media', '.product-image-main', '.product-media-container', '.product-gallery', '.product-single__media', '.media-gallery', '.js-swiper-product', '.product__media', '[data-media-id]', '.product__media-item', '.js-product-slide'];
+        const imgContainers = ['.js-product-slide', '.product-image-column', '.js-swiper-product', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-gallery__media', '.product__media', '.product-image-main', '.product-media-container', '[data-media-id]', '.product__media-item', '.product-gallery', '.product-single__media', '.media-gallery'];
 
         function tryPlaceTriggerBtn() {
             // 1ª prioridade: container que tenha <img> dentro (evita cair em slide de vídeo)
@@ -1011,9 +1008,35 @@
 
         openBtn.addEventListener('click', handleTriggerClick, true);
 
+        // Mobile: Swiper/slider do tema consome touchmove e o click nunca dispara.
+        // Tratamos touchstart+touchend como tap quando o dedo não se moveu.
+        let touchStartX = 0, touchStartY = 0, touchFired = false;
+        function bindTouch(el) {
+            el.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                touchFired = false;
+                const t = e.touches[0];
+                touchStartX = t.clientX; touchStartY = t.clientY;
+            }, { passive: true, capture: true });
+            el.addEventListener('touchend', (e) => {
+                const t = e.changedTouches[0];
+                const dx = Math.abs(t.clientX - touchStartX);
+                const dy = Math.abs(t.clientY - touchStartY);
+                if (dx < 10 && dy < 10) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    touchFired = true;
+                    handleTriggerClick(e);
+                }
+            }, { passive: false, capture: true });
+        }
+        bindTouch(openBtn);
+        bindTouch(inlineBtn);
+
         // Delegação global como fallback — captura cliques em qualquer instância
         // dos botões (selo ou inline), mesmo que o tema re-renderize o DOM.
         document.addEventListener('click', function (e) {
+            if (touchFired) { touchFired = false; return; }
             const t = e.target && e.target.closest && e.target.closest('.q-btn-trigger-ia, .q-btn-inline-provador');
             if (t) handleTriggerClick(e);
         }, true);
