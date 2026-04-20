@@ -992,11 +992,10 @@
         function ensureModalInDom() {
             const existing = document.getElementById('q-modal-ia');
             if (existing && existing !== modal) existing.remove();
-            // Também remover botões duplicados (selo/inline) criados pelo re-parse
-            document.querySelectorAll('.q-btn-trigger-ia, .q-btn-inline-provador').forEach(el => {
-                if (el !== openBtn && el !== inlineBtn) el.remove();
-            });
             if (!modal.isConnected) document.body.appendChild(modal);
+            // NÃO removemos as cópias dos botões (selo/inline) criadas pelo
+            // re-parse: elas são o que o usuário vê e clica. Nossa delegação
+            // global no document trata o clique nelas independente de listeners.
         }
 
         function openModal() {
