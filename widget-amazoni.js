@@ -981,7 +981,18 @@
             return;
         }
 
+        // Scripts do tema (appPlanweb na Amazoni) fazem
+        // `body.innerHTML = body.innerHTML.replaceAll(...)` e destacam o nosso
+        // modal do DOM. Nossa referência continua válida (handlers preservados),
+        // só precisa ser re-anexada ao novo body antes de abrir.
+        function ensureModalInDom() {
+            if (!modal.isConnected) {
+                document.body.appendChild(modal);
+            }
+        }
+
         function openModal() {
+            ensureModalInDom();
             modal.style.display = 'flex';
             lockBodyScroll();
         }
