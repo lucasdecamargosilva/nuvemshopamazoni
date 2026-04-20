@@ -148,7 +148,7 @@
             background: transparent;
             color: #000;
             border: 1px solid #000;
-            border-radius: 0;
+            border-radius: 999px;
             font-family: 'Work Sans', sans-serif;
             font-weight: 600; font-size: 10px;
             letter-spacing: 1.5px; text-transform: uppercase;
