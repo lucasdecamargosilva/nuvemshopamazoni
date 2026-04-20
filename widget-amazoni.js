@@ -882,15 +882,17 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra
+        // Posiciona acima do botão de compra — prioriza posições FORA da linha
+        // quantidade/submit (evita conflito com handlers do tema e largura restrita).
+        const productForm = document.querySelector('form.js-product-form, form#product_form');
+        const variantsContainer = document.querySelector('.js-product-variants');
         const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (buyBtn) {
+        if (variantsContainer) {
+            variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
+        } else if (productForm) {
+            productForm.parentNode.insertBefore(inlineBtn, productForm);
+        } else if (buyBtn) {
             buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
-        } else {
-            const variantsContainer = document.querySelector('.js-product-variants');
-            if (variantsContainer) {
-                variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
-            }
         }
         const genBtn = document.getElementById('q-btn-generate');
         const uploadStep = document.getElementById('q-step-upload');
