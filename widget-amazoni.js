@@ -985,10 +985,18 @@
         // `body.innerHTML = body.innerHTML.replaceAll(...)` e destacam o nosso
         // modal do DOM. Nossa referência continua válida (handlers preservados),
         // só precisa ser re-anexada ao novo body antes de abrir.
+        // CRÍTICO: o re-parse também cria uma CÓPIA "morta" do modal (sem
+        // listeners) no novo body. Se deixarmos as duas, getElementById
+        // retorna a cópia morta primeiro e quebra botões internos (upload de
+        // foto, gerar etc.). Removemos qualquer duplicata antes de re-anexar.
         function ensureModalInDom() {
-            if (!modal.isConnected) {
-                document.body.appendChild(modal);
-            }
+            const existing = document.getElementById('q-modal-ia');
+            if (existing && existing !== modal) existing.remove();
+            // Também remover botões duplicados (selo/inline) criados pelo re-parse
+            document.querySelectorAll('.q-btn-trigger-ia, .q-btn-inline-provador').forEach(el => {
+                if (el !== openBtn && el !== inlineBtn) el.remove();
+            });
+            if (!modal.isConnected) document.body.appendChild(modal);
         }
 
         function openModal() {
