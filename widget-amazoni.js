@@ -991,7 +991,7 @@
         }
 
 
-        openBtn.onclick = (e) => {
+        function handleTriggerClick(e) {
             if (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1000,7 +1000,16 @@
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
-        };
+        }
+
+        openBtn.addEventListener('click', handleTriggerClick, true);
+
+        // Delegação global como fallback — captura cliques em qualquer instância
+        // dos botões (selo ou inline), mesmo que o tema re-renderize o DOM.
+        document.addEventListener('click', function (e) {
+            const t = e.target && e.target.closest && e.target.closest('.q-btn-trigger-ia, .q-btn-inline-provador');
+            if (t) handleTriggerClick(e);
+        }, true);
 
 
         closeBtn.onclick = () => closeModal();
