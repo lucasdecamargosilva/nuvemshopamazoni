@@ -191,8 +191,8 @@
         @media (min-width: 768px) {
             #q-modal-ia { display: none; align-items: center; justify-content: center; }
             .q-card-ia {
-                width: 480px;
-                max-width: 90vw;
+                width: 620px;
+                max-width: 92vw;
                 min-height: auto;
                 max-height: 94vh;
                 border: 1px solid #000;
@@ -589,9 +589,9 @@
         /* Result mode on desktop */
         @media (min-width: 768px) {
             .q-card-ia.is-result {
-                width: 820px !important;
-                max-width: 90vw !important;
-                height: 560px !important;
+                width: 1000px !important;
+                max-width: 92vw !important;
+                height: 660px !important;
             }
             .q-card-ia.is-result #q-header-provador,
             .q-card-ia.is-result .q-powered-footer { display: none !important; }
