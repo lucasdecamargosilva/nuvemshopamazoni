@@ -123,7 +123,7 @@
         }
         .q-btn-trigger-ia {
             position: absolute;
-            top: 55px; right: 15px;
+            top: 55px; right: 30px;
             z-index: 100;
             background: none; border: none; padding: 0;
             cursor: pointer;
