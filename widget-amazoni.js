@@ -1089,7 +1089,7 @@
             } catch (e) {
                 hidePixScreen();
                 uploadStep.style.display = 'block';
-                alert('Erro ao gerar PIX. Tente novamente.');
+                showError();
             }
         }
 
@@ -1112,7 +1112,7 @@
         async function runGeneration() {
             const keyToUse = window.PROVOU_LEVOU_API_KEY;
             if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
-                alert("Erro: API Key não configurada neste script.");
+                showError();
                 return;
             }
 
@@ -1160,7 +1160,7 @@
                         document.getElementById('q-loading-box').style.display = 'none';
                         photoStep.style.display = 'flex';
                         if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
-                            alert("App desativado nesta loja");
+                            showError();
                         } else {
                             alert(data.error);
                         }
@@ -1178,12 +1178,12 @@
                 } else if (res.status === 401 || res.status === 403) {
                     document.getElementById('q-loading-box').style.display = 'none';
                     photoStep.style.display = 'flex';
-                    alert("App desativado nesta loja");
+                    showError();
                 } else { throw new Error(); }
             } catch (e) {
                 document.getElementById('q-loading-box').style.display = 'none';
                 photoStep.style.display = 'flex';
-                alert('Ocorreu um erro ao processar sua imagem (ou chave/servidor indisponíveis). Tente novamente.');
+                showError();
             }
         }
 
