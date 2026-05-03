@@ -598,7 +598,7 @@
                             <div class="q-loading-t1">Gerando sua prova...</div>
                             <a href="https://provoulevou.com.br" target="_blank" class="q-loading-t2">
                                 <span>Powered by</span>
-                                <img src="https://provoulevou.com.br/assets/provoulevou-logo.png" alt="Provou Levou">
+                                <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou">
                             </a>
                         </div>
                         <div class="q-loading-bar"><div></div></div>
@@ -632,7 +632,7 @@
                 </div>
                 <a href="https://provoulevou.com.br" target="_blank" class="q-powered-footer">
                     <span>Powered by</span>
-                    <img src="https://provoulevou.com.br/assets/provoulevou-logo.png" class="q-quantic-logo" alt="Provou Levou">
+                    <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" class="q-quantic-logo" alt="Provou Levou">
                 </a>
             </div>
         </div>
