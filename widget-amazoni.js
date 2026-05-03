@@ -525,17 +525,14 @@
                 <button type="button" class="q-close-ia" id="q-close-btn">&times;</button>
                 <div class="q-content-scroll">
 
+                    <!-- Persistent header (all steps) -->
+                    <div id="q-header-provador">
+                        <h1>Provador Virtual</h1>
+                        <img src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp" alt="Amazoni Glasses" style="height:52px;width:auto;filter:brightness(0);"/>
+                    </div>
+
                     <!-- Main step -->
                     <div id="q-step-photo">
-                        <div id="q-header-provador">
-                            <h1>Provador Virtual</h1>
-                            <img
-                                src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp"
-                                alt="Amazoni Glasses"
-                                style="height:52px;width:auto;filter:brightness(0);"
-                            />
-                        </div>
-
                         <!-- WhatsApp -->
                         <div class="q-phone-wrap">
                             <span class="q-field-label">Seu WhatsApp</span>
