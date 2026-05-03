@@ -859,8 +859,10 @@
                 document.head.appendChild(ph);
                 window.phosphorIconsLoaded = true;
             }
-            // Re-fetch modal ref in case it was detached
+            // Amazoni theme (appPlanweb) pode fazer body.innerHTML replacements
+            // que desconectam o modal do DOM — re-append se necessário
             var m = modal || document.getElementById('q-modal-ia');
+            if (m && !m.isConnected) document.body.appendChild(m);
             if (m) { m.style.display = 'flex'; lockBodyScroll(); }
         }
 
