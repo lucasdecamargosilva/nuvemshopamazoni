@@ -859,8 +859,9 @@
                 document.head.appendChild(ph);
                 window.phosphorIconsLoaded = true;
             }
-            modal.style.display = 'flex';
-            lockBodyScroll();
+            // Re-fetch modal ref in case it was detached
+            var m = modal || document.getElementById('q-modal-ia');
+            if (m) { m.style.display = 'flex'; lockBodyScroll(); }
         }
 
 
