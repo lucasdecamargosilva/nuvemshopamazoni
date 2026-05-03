@@ -506,7 +506,7 @@
             flex-shrink: 0; border-top: 1px solid var(--c-line); text-decoration: none;
         }
         .q-powered-footer span { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c-muted); }
-        .q-quantic-logo { height: 20px; filter: brightness(0); opacity: 0.5; }
+        .q-quantic-logo { height: 20px; opacity: 0.7; }
     `;
 
 
