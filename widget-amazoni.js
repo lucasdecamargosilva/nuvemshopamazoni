@@ -784,6 +784,7 @@
         const realInput   = galleryInput;
 
         let userPhoto = null;
+        let pixPaymentId = null;
         let selectedProductImgUrl = '';
 
         // Upgrade Nuvemshop CDN URLs to 1024px version
@@ -900,6 +901,7 @@
             photoStep.style.display = 'flex';
             document.querySelector('.q-card-ia').classList.remove('is-result');
             userPhoto = null;
+            pixPaymentId = null;
             preImg.style.display = 'none';
             if (facePlaceholder) facePlaceholder.style.display = 'flex';
             checkFields();
@@ -1080,6 +1082,7 @@
                             document.getElementById('q-pix-status-msg').className = 'q-pix-status q-pix-approved';
                             setTimeout(() => {
                                 hidePixScreen();
+                                pixPaymentId = pix.payment_id;
                                 runGeneration();
                             }, 1200);
                         }
@@ -1130,6 +1133,7 @@
                 fd.append('product_type', currentProduct.category);
                 fd.append('product_fit', currentProduct.fit);
                 fd.append('api_key', keyToUse);
+                if (pixPaymentId) fd.append('pix_payment_id', pixPaymentId);
 
                 if (currentProduct.category === 'top') {
                     fd.append('height', '');
