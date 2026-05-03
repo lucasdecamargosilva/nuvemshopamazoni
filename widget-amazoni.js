@@ -667,6 +667,29 @@
             text-transform: uppercase;
             color: #666;
         }
+
+        #q-step-error {
+            display: none;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+            text-align: center;
+            padding: 40px 0;
+        }
+        #q-step-error h2 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0;
+            color: #000;
+        }
+        #q-step-error p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+            line-height: 1.6;
+        }
         .q-quantic-logo {
             height: 22px;
             filter: brightness(0);
@@ -1057,6 +1080,17 @@
 
 
         triggerUpload.onclick = () => realInput.click();
+
+        function showError() {
+            var lb = document.getElementById('q-loading-box');
+            var su = document.getElementById('q-step-upload');
+            var se = document.getElementById('q-step-error');
+            if (lb) lb.style.display = 'none';
+            if (su) su.style.display = 'none';
+            if (se) se.style.display = 'flex';
+        }
+        document.getElementById('q-error-back').onclick = function() { closeModal(); };
+
 
 
         phoneInput.addEventListener('input', function (e) {
