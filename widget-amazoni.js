@@ -776,6 +776,11 @@
                             <button class="q-btn-outline" id="q-btn-back">Voltar ao Produto</button>
                             <p class="q-res-mobile-only" id="q-retry-btn">Tentar outra foto</p>
                         </div>
+                    <div id="q-step-error">
+                        <h2>Provador fora do ar</h2>
+                        <p>Voltamos em breve &#x1F64F;</p>
+                        <button class="q-btn-outline" id="q-error-back">Voltar ao Produto</button>
+                    </div>
                     </div>
                 </div>
                 <a href="https://provoulevou.com.br" target="_blank" class="q-powered-footer">
@@ -1089,7 +1094,7 @@
             if (su) su.style.display = 'none';
             if (se) se.style.display = 'flex';
         }
-        document.getElementById('q-error-back').onclick = function() { closeModal(); };
+        var _eb = document.getElementById('q-error-back'); if (_eb) _eb.onclick = function() { closeModal(); };
 
 
 
