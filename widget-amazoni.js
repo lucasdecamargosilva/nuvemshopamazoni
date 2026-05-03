@@ -136,7 +136,7 @@
         /* ── Inline button ── */
         .q-btn-inline-provador {
             display: flex; align-items: center; justify-content: center; gap: 7px;
-            width: 100%; padding: 16px 16px; height: 54px;
+            width: 100%; padding: 12px 16px; height: 44px;
             background: transparent; color: var(--c-ink);
             border: 1.5px solid var(--c-ink); border-radius: 6px;
             font-family: 'Work Sans', var(--font-body), sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
@@ -532,7 +532,7 @@
                             <img
                                 src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp"
                                 alt="Amazoni Glasses"
-                                style="height:40px;width:auto;filter:brightness(0);"
+                                style="height:52px;width:auto;filter:brightness(0);"
                             />
                         </div>
 
