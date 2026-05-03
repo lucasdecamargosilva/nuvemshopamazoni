@@ -527,7 +527,7 @@
                     <!-- Persistent header (all steps) -->
                     <div id="q-header-provador">
                         <h1>Provador Virtual</h1>
-                        <img src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp" alt="Amazoni Glasses" style="height:52px;width:auto;filter:brightness(0);"/>
+                        <img src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp" alt="Amazoni Glasses" style="height:42px;width:auto;filter:brightness(0);"/>
                     </div>
 
                     <!-- Main step -->
