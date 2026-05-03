@@ -532,7 +532,7 @@
                             <img
                                 src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp"
                                 alt="Amazoni Glasses"
-                                style="height:40px;width:auto;"
+                                style="height:40px;width:auto;filter:brightness(0);"
                             />
                         </div>
 
