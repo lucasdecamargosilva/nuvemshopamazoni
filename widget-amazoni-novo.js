@@ -196,6 +196,7 @@
         #q-result-img-col img { width:100%; height:100%; object-fit:cover; object-position:top center; display:block; }
         #q-result-actions-col { display:flex; flex-direction:column; gap:10px; padding:20px 28px 0; }
         .q-res-title { display:block; font-family:var(--font-display); font-size:18px; letter-spacing:3px; text-transform:uppercase; color:var(--c-ink); padding:20px 28px 16px; border-bottom:1px solid var(--c-line); text-align:center; }
+        .q-res-title { display:block; font-family:var(--font-display); font-size:18px; letter-spacing:3px; text-transform:uppercase; color:var(--c-ink); padding:16px 28px 14px; border-bottom:1px solid var(--c-line); text-align:center; }
         .q-res-subtitle,.q-res-note { display:none; }
         .q-res-mobile-only { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:52px; background:var(--c-ink); color:#fff; border:none; font-family:var(--font-display); font-size:17px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; margin:0; text-decoration:none; box-sizing:border-box; }
         @media(min-width:768px){
@@ -203,7 +204,7 @@
             .q-card-ia.is-result .q-content-scroll{padding:0 !important;overflow-y:auto !important;display:flex !important;flex-direction:column !important;}
             .q-card-ia.is-result #q-step-result{display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;width:100%;align-items:stretch;gap:0;}
             .q-card-ia.is-result .q-res-title{flex-basis:100%;order:-1;font-size:16px;padding:16px 24px;border-bottom:1px solid var(--c-line);text-align:center;}
-            .q-card-ia.is-result .q-res-title{flex-basis:100%;order:-1;font-size:16px;padding:16px 24px;border-bottom:1px solid var(--c-line);}
+            .q-card-ia.is-result .q-res-title{flex-basis:100%;order:-1;font-size:16px;padding:16px 24px;border-bottom:1px solid var(--c-line);text-align:center;}
             .q-card-ia.is-result #q-result-img-col{width:44% !important;min-height:360px !important;border-right:1px solid var(--c-line);flex-shrink:0;}
             .q-card-ia.is-result #q-result-img-col img{width:100% !important;height:100% !important;object-fit:cover !important;object-position:top center !important;}
             .q-card-ia.is-result #q-result-actions-col{width:56% !important;padding:28px 24px !important;display:flex !important;flex-direction:column !important;justify-content:flex-start;gap:10px;overflow-y:auto;}
@@ -219,9 +220,9 @@
         #q-related-products h4 { font-family:var(--font-display); font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--c-muted); margin:20px 0 12px; font-weight:400; }
         .q-related-grid { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
         .q-related-grid::-webkit-scrollbar { display:none; }
-        .q-related-card { flex:0 0 calc(33.333% - 7px); min-width:88px; text-decoration:none; color:var(--c-ink); display:flex; flex-direction:column; gap:6px; }
+        .q-related-card { flex:0 0 calc(33.333% - 7px); min-width:72px; max-width:100px; text-decoration:none; color:var(--c-ink); display:flex; flex-direction:column; gap:4px; }
         .q-related-card img { width:100%; aspect-ratio:1/1; object-fit:cover; border:1px solid var(--c-line); display:block; border-radius:3px; }
-        .q-related-card-name { font-size:10px; font-weight:500; line-height:1.4; color:var(--c-ink); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+        .q-related-card-name { font-size:9px; font-weight:500; line-height:1.3; color:var(--c-ink); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 
         .q-powered-footer{background:var(--c-surface);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:9px;flex-shrink:0;border-top:1px solid var(--c-line);text-decoration:none;}
         .q-powered-footer span{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c-muted);}
@@ -297,11 +298,11 @@
                     </div>
 
                     <div id="q-step-result">
+                        <span class="q-res-title">Veja como ficou em voc&ecirc; &#x2728;</span>
                         <div id="q-result-img-col">
                             <img id="q-final-view-img">
                         </div>
                         <div id="q-result-actions-col">
-                            <span class="q-res-title">Veja como ficou em voc&ecirc; &#x2728;</span>
                             <div class="q-res-note"></div>
                             <button class="q-btn-outline" id="q-btn-back">Voltar ao Produto</button>
                             <p class="q-res-mobile-only" id="q-retry-btn">Tentar outra foto</p>
