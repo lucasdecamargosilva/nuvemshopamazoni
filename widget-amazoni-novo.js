@@ -214,6 +214,15 @@
         #q-step-error h2{font-family:var(--font-display);font-size:22px;letter-spacing:3px;text-transform:uppercase;margin:0;font-weight:400;}
         #q-step-error p{font-size:13px;color:var(--c-muted);margin:0;line-height:1.6;}
 
+
+        #q-related-products { padding: 0 28px 28px; }
+        #q-related-products h4 { font-family:var(--font-display); font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--c-muted); margin:20px 0 12px; font-weight:400; }
+        .q-related-grid { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
+        .q-related-grid::-webkit-scrollbar { display:none; }
+        .q-related-card { flex:0 0 calc(33.333% - 7px); min-width:88px; text-decoration:none; color:var(--c-ink); display:flex; flex-direction:column; gap:6px; }
+        .q-related-card img { width:100%; aspect-ratio:1/1; object-fit:cover; border:1px solid var(--c-line); display:block; border-radius:3px; }
+        .q-related-card-name { font-size:10px; font-weight:500; line-height:1.4; color:var(--c-ink); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+
         .q-powered-footer{background:var(--c-surface);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:9px;flex-shrink:0;border-top:1px solid var(--c-line);text-decoration:none;}
         .q-powered-footer span{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c-muted);}
         .q-quantic-logo{height:20px;opacity:0.7;}
@@ -297,6 +306,11 @@
                             <button class="q-btn-outline" id="q-btn-back">Voltar ao Produto</button>
                             <p class="q-res-mobile-only" id="q-retry-btn">Tentar outra foto</p>
                         </div>
+                    <div id="q-related-products" style="display:none;">
+                        <h4>Veja tamb&eacute;m</h4>
+                        <div class="q-related-grid" id="q-related-grid"></div>
+                    </div>
+
                     <div id="q-step-error">
                         <h2>Provador fora do ar</h2>
                         <p>Voltamos em breve &#x1F64F;</p>
@@ -607,6 +621,43 @@
 
         triggerUpload.onclick = () => realInput.click();
 
+
+        function loadRelatedProducts() {
+            var grid = document.getElementById('q-related-grid');
+            var section = document.getElementById('q-related-products');
+            if (!grid || !section) return;
+            var items = document.querySelectorAll('.js-swiper-related .js-item-product');
+            if (!items.length) items = document.querySelectorAll('.js-item-product');
+            var products = [];
+            items.forEach(function(item) {
+                if (products.length >= 3) return;
+                var container = item.querySelector('[data-variants]');
+                if (!container) return;
+                try {
+                    var variants = JSON.parse(container.getAttribute('data-variants'));
+                    if (!variants || !variants.length) return;
+                    var v = variants[0];
+                    var imgRaw = v.image_url || '';
+                    var img = imgRaw ? 'https:' + imgRaw.replace(/\\/g, '').replace('-1024-1024.webp', '-480-0.webp') : '';
+                    var imgEl = item.querySelector('img[alt]');
+                    var name = imgEl ? imgEl.getAttribute('alt').trim() : '';
+                    var linkEl = item.querySelector('a[href*="/produtos/"]');
+                    var link = linkEl ? linkEl.getAttribute('href') : '';
+                    if (img && name) products.push({ name: name, img: img, link: link });
+                } catch(e) {}
+            });
+            if (!products.length) return;
+            while (grid.firstChild) grid.removeChild(grid.firstChild);
+            products.forEach(function(p) {
+                var a = document.createElement('a');
+                a.className = 'q-related-card'; a.href = p.link || '#'; a.target = '_blank';
+                var img = document.createElement('img'); img.src = p.img; img.alt = p.name; img.loading = 'lazy';
+                var nameEl = document.createElement('span'); nameEl.className = 'q-related-card-name'; nameEl.textContent = p.name;
+                a.appendChild(img); a.appendChild(nameEl); grid.appendChild(a);
+            });
+            section.style.display = 'block';
+        }
+
         function showError() {
             var lb = document.getElementById('q-loading-box');
             var su = document.getElementById('q-step-upload');
@@ -816,6 +867,7 @@
                     document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
                     document.querySelector('.q-card-ia').classList.add('is-result');
                     document.getElementById('q-step-result').style.display = 'flex';
+                    loadRelatedProducts();
                 } else if (res.status === 401 || res.status === 403) {
                     document.getElementById('q-loading-box').style.display = 'none';
                     document.getElementById('q-step-upload').style.display = 'block';
