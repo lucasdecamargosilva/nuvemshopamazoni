@@ -6,9 +6,10 @@
     window.PROVOU_LEVOU_API_KEY = apiKey;
 
     const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/gerador-oculos';
-    const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/cacife-pix';
-    const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/cacife-pix-status';
     const WEBHOOK_CHECK_LIMIT = 'https://n8n.segredosdodrop.com/webhook/amazoni-check-limit';
+    // PIX desativado por enquanto
+    // const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/califa-pix';
+    // const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/califa-pix-status';
     const SIZES_TOP = ['XXP', 'XP', 'P', 'M', 'G', 'XG', 'XXG', '3XG', '4XG', '5XG'];
     const SIZES_BOTTOM = ['36/XXP', '38/XP', '40/P', '42/M', '44/G', '46/XG', '48/XXG', '50/3XG', '52/4XG', '54/5XG'];
     const SIZES_BOTTOM_SW = ['XXP', 'XP', 'P', 'M', 'G', 'XG', 'XXG', '3XG', '4XG', '5XG'];
@@ -651,18 +652,24 @@
             return;
         }
 
-        // Fontes (async, não bloqueia render)
         const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap';
         fontLink.rel = 'stylesheet';
         document.head.appendChild(fontLink);
 
-        // Phosphor Icons — carregado lazily na primeira abertura do modal
-        // (não carrega na init para não impactar o tempo de carregamento da página)
+
+        if (!window.phosphorIconsLoaded) {
+            const ph = document.createElement('script');
+            ph.src = 'https://unpkg.com/@phosphor-icons/web';
+            document.head.appendChild(ph);
+            window.phosphorIconsLoaded = true;
+        }
+
 
         const styleTag = document.createElement('style');
         styleTag.textContent = styles;
         document.head.appendChild(styleTag);
+
 
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = html;
@@ -677,7 +684,10 @@
         openBtn.innerHTML = stampImageHTML;
 
 
-        const imgContainers = ['.js-product-slide', '.product-image-column', '.js-swiper-product', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-gallery__media', '.product__media', '.product-image-main', '.product-media-container', '[data-media-id]', '.product__media-item', '.product-gallery', '.product-single__media', '.media-gallery'];
+        // IMPORTANTE: containers SEM swiper vêm primeiro — no mobile, se o selo
+        // cai dentro de `.js-product-slide` (slide do Swiper), o gesto de swipe
+        // do tema engole o tap e o botão nunca abre.
+        const imgContainers = ['[data-store^="product-image-"]', '.product-image-column', '.product__media-wrapper', '.product-gallery__media', '.product-image-main', '.product-media-container', '.product-gallery', '.product-single__media', '.media-gallery', '.js-swiper-product', '.product__media', '[data-media-id]', '.product__media-item', '.js-product-slide'];
 
         function tryPlaceTriggerBtn() {
             // 1ª prioridade: container que tenha <img> dentro (evita cair em slide de vídeo)
@@ -748,47 +758,39 @@
         const inlineBtnText = document.createTextNode('Provador Virtual');
         inlineBtn.appendChild(inlineBtnText);
 
-        function handleTriggerClick(e) {
-            if (e) { e.preventDefault(); e.stopPropagation(); }
+        inlineBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
-        }
+        });
 
-        openBtn.addEventListener('click', handleTriggerClick, true);
-        inlineBtn.addEventListener('click', handleTriggerClick, true);
-
-        // Posiciona acima do botão de compra
+        // Posiciona acima do botão de compra — prioriza posições FORA da linha
+        // quantidade/submit (evita conflito com handlers do tema e largura restrita).
+        const productForm = document.querySelector('form.js-product-form, form#product_form');
+        const variantsContainer = document.querySelector('.js-product-variants');
         const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (buyBtn) {
+        if (variantsContainer) {
+            variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
+        } else if (productForm) {
+            productForm.parentNode.insertBefore(inlineBtn, productForm);
+        } else if (buyBtn) {
             buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
-        } else {
-            const variantsContainer = document.querySelector('.js-product-variants');
-            if (variantsContainer) {
-                variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
-            }
         }
-        const genBtn      = document.getElementById('q-btn-generate');
-        const nextBtn     = null; // single-step flow — no next button
-        const phoneStep   = null;
-        const photoStep   = document.getElementById('q-step-photo');
-        const uploadStep  = photoStep; // alias for PIX/error refs
+        const genBtn = document.getElementById('q-btn-generate');
+        const uploadStep = document.getElementById('q-step-upload');
 
-        const closeBtn    = document.getElementById('q-close-btn');
-        const backBtn     = document.getElementById('q-btn-back');
-        const retryBtn    = document.getElementById('q-retry-btn');
-        const cameraInput = document.getElementById('q-camera-input');
-        const galleryInput= document.getElementById('q-gallery-input');
-        const phoneInput  = document.getElementById('q-phone');
-        const preImg      = document.getElementById('q-pre-img');
-        const facePlaceholder = document.getElementById('q-face-placeholder');
+        const closeBtn = document.getElementById('q-close-btn');
+        const backBtn = document.getElementById('q-btn-back');
+        const retryBtn = document.getElementById('q-retry-btn');
+        const realInput = document.getElementById('q-real-input');
+        const triggerUpload = document.getElementById('q-trigger-upload');
+        const phoneInput = document.getElementById('q-phone');
 
-        // keep realInput alias so PIX code still works
-        const realInput   = galleryInput;
 
         let userPhoto = null;
-        let pixPaymentId = null;
         let selectedProductImgUrl = '';
 
         // Upgrade Nuvemshop CDN URLs to 1024px version
@@ -851,27 +853,30 @@
         function populateImageSelector() {
             const imgs = extractImages();
             const group = document.getElementById('q-photo-selector-group');
-            if (group) group.style.display = 'none';
+
+            group.style.display = 'none';
             selectedProductImgUrl = imgs[0] || '';
+            return;
         }
 
-        // Amazoni: appPlanweb faz body.innerHTML replacements que criam
-        // uma cópia morta do modal (sem listeners). Precisamos remover a cópia
-        // morta e re-anexar o modal original antes de abrir.
+        // Scripts do tema (appPlanweb na Amazoni) fazem
+        // `body.innerHTML = body.innerHTML.replaceAll(...)` e destacam o nosso
+        // modal do DOM. Nossa referência continua válida (handlers preservados),
+        // só precisa ser re-anexada ao novo body antes de abrir.
+        // CRÍTICO: o re-parse também cria uma CÓPIA "morta" do modal (sem
+        // listeners) no novo body. Se deixarmos as duas, getElementById
+        // retorna a cópia morta primeiro e quebra botões internos (upload de
+        // foto, gerar etc.). Removemos qualquer duplicata antes de re-anexar.
         function ensureModalInDom() {
             const existing = document.getElementById('q-modal-ia');
             if (existing && existing !== modal) existing.remove();
             if (!modal.isConnected) document.body.appendChild(modal);
+            // NÃO removemos as cópias dos botões (selo/inline) criadas pelo
+            // re-parse: elas são o que o usuário vê e clica. Nossa delegação
+            // global no document trata o clique nelas independente de listeners.
         }
 
         function openModal() {
-            // Lazy-load Phosphor Icons na primeira abertura
-            if (!window.phosphorIconsLoaded) {
-                var ph = document.createElement('script');
-                ph.src = 'https://unpkg.com/@phosphor-icons/web';
-                document.head.appendChild(ph);
-                window.phosphorIconsLoaded = true;
-            }
             ensureModalInDom();
             modal.style.display = 'flex';
             lockBodyScroll();
@@ -889,7 +894,25 @@
         }
 
 
+        function handleTriggerClick(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+            applyProduct(detectProduct(prodName));
+            populateImageSelector();
+            openModal();
+        }
 
+        openBtn.addEventListener('click', handleTriggerClick, true);
+
+        // Delegação global como fallback — captura cliques em qualquer instância
+        // dos botões (selo ou inline), mesmo que o tema re-renderize o DOM.
+        document.addEventListener('click', function (e) {
+            const t = e.target && e.target.closest && e.target.closest('.q-btn-trigger-ia, .q-btn-inline-provador');
+            if (t) handleTriggerClick(e);
+        }, true);
 
 
         closeBtn.onclick = () => closeModal();
@@ -903,77 +926,19 @@
 
         retryBtn.onclick = () => {
             document.getElementById('q-step-result').style.display = 'none';
-            photoStep.style.display = 'flex';
+            document.getElementById('q-step-upload').style.display = 'block';
             document.querySelector('.q-card-ia').classList.remove('is-result');
             userPhoto = null;
-            pixPaymentId = null;
-            preImg.style.display = 'none';
-            if (facePlaceholder) facePlaceholder.style.display = 'flex';
+            document.getElementById('q-pre-view').style.display = 'none';
             checkFields();
         };
 
-        // Camera / gallery buttons
-        document.getElementById('q-btn-camera').onclick = function() { cameraInput.click(); };
-        document.getElementById('q-btn-gallery').onclick = function() { galleryInput.click(); };
-        document.getElementById('q-face-frame').onclick = function() { galleryInput.click(); };
 
-        function loadRelatedProducts() {
-            var grid = document.getElementById('q-related-grid');
-            var section = document.getElementById('q-related-products');
-            if (!grid || !section) return;
-
-            var items = document.querySelectorAll('.js-swiper-related .js-item-product');
-            if (!items.length) items = document.querySelectorAll('.js-item-product');
-            var products = [];
-
-            items.forEach(function(item) {
-                if (products.length >= 3) return;
-                var container = item.querySelector('[data-variants]');
-                if (!container) return;
-                try {
-                    var variants = JSON.parse(container.getAttribute('data-variants'));
-                    if (!variants || !variants.length) return;
-                    var v = variants[0];
-                    var imgRaw = v.image_url || '';
-                    var img = imgRaw ? 'https:' + imgRaw.replace(/\\/g, '').replace('-1024-1024.webp', '-480-0.webp') : '';
-                    var price = v.price_short || '';
-                    // Name from img alt (Nuvemshop sets it reliably)
-                    var imgEl = item.querySelector('img[alt]');
-                    var name = imgEl ? imgEl.getAttribute('alt').trim() : '';
-                    // Link from any anchor pointing to /produtos/
-                    var linkEl = item.querySelector('a[href*="/produtos/"]');
-                    var link = linkEl ? linkEl.getAttribute('href') : '';
-                    if (img && (name || price)) {
-                        products.push({ name: name, img: img, price: price, link: link });
-                    }
-                } catch(e) {}
-            });
-
-            if (!products.length) return;
-
-            while (grid.firstChild) grid.removeChild(grid.firstChild);
-            products.forEach(function(p) {
-                var a = document.createElement('a');
-                a.className = 'q-related-card';
-                a.href = p.link || '#';
-                a.target = '_blank';
-                var img = document.createElement('img');
-                img.src = p.img;
-                img.alt = p.name;
-                img.loading = 'lazy';
-                var nameEl = document.createElement('span');
-                nameEl.className = 'q-related-card-name';
-                nameEl.textContent = p.name;
-                a.appendChild(img);
-                a.appendChild(nameEl);
-                grid.appendChild(a);
-            });
-            section.style.display = 'block';
-        }
+        triggerUpload.onclick = () => realInput.click();
 
         function showError() {
             var lb = document.getElementById('q-loading-box');
-            var su = photoStep;
+            var su = document.getElementById('q-step-upload');
             var se = document.getElementById('q-step-error');
             if (lb) lb.style.display = 'none';
             if (su) su.style.display = 'none';
@@ -986,40 +951,40 @@
         phoneInput.addEventListener('input', function (e) {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
-            checkPhoneStep();
+            checkFields();
         });
 
-        function checkPhoneStep() {
-            const nums = phoneInput.value.replace(/\D/g, '');
-            const phoneOk = nums.length >= 10 && nums.length <= 11;
-            document.getElementById('q-phone-error').style.display = (phoneInput.value.length > 0 && !phoneOk) ? 'block' : 'none';
-            phoneInput.style.borderColor = (phoneInput.value.length > 0 && !phoneOk) ? '#ef4444' : 'var(--q-border)';
-            checkFields();
-        }
 
         function checkFields() {
             const nums = phoneInput.value.replace(/\D/g, '');
             const phoneOk = nums.length >= 10 && nums.length <= 11;
+            document.getElementById('q-phone-error').style.display = (phoneInput.value.length > 0 && !phoneOk) ? 'block' : 'none';
+            phoneInput.style.borderColor = (phoneInput.value.length > 0 && !phoneOk) ? '#ef4444' : 'var(--q-border)';
+
             genBtn.disabled = !(userPhoto && phoneOk && document.getElementById('q-accept-terms').checked);
         }
 
+
+        ['q-h-val', 'q-w-val', 'q-cin-val', 'q-quad-val'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', checkFields);
+        });
+
         document.getElementById('q-accept-terms').onchange = checkFields;
 
-        function handlePhotoSelected(file) {
-            if (!file) return;
-            userPhoto = file;
-            const rd = new FileReader();
-            rd.onload = ev => {
-                preImg.src = ev.target.result;
-                preImg.style.display = 'block';
-                if (facePlaceholder) facePlaceholder.style.display = 'none';
-                checkFields();
-            };
-            rd.readAsDataURL(file);
-        }
 
-        cameraInput.onchange  = (e) => handlePhotoSelected(e.target.files[0]);
-        galleryInput.onchange = (e) => handlePhotoSelected(e.target.files[0]);
+        realInput.onchange = (e) => {
+            userPhoto = e.target.files[0];
+            if (userPhoto) {
+                const rd = new FileReader();
+                rd.onload = ev => {
+                    document.getElementById('q-pre-img').src = ev.target.result;
+                    document.getElementById('q-pre-view').style.display = 'block';
+                    checkFields();
+                };
+                rd.readAsDataURL(userPhoto);
+            }
+        };
 
 
         function resizeImage(fileOrBlob, maxSize) {
@@ -1087,7 +1052,6 @@
                             document.getElementById('q-pix-status-msg').className = 'q-pix-status q-pix-approved';
                             setTimeout(() => {
                                 hidePixScreen();
-                                pixPaymentId = pix.payment_id;
                                 runGeneration();
                             }, 1200);
                         }
@@ -1096,7 +1060,7 @@
             } catch (e) {
                 hidePixScreen();
                 uploadStep.style.display = 'block';
-                showError();
+                alert('Erro ao gerar PIX. Tente novamente.');
             }
         }
 
@@ -1119,7 +1083,7 @@
         async function runGeneration() {
             const keyToUse = window.PROVOU_LEVOU_API_KEY;
             if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
-                showError();
+                alert("Erro: API Key não configurada neste script.");
                 return;
             }
 
@@ -1127,7 +1091,7 @@
             const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
 
             uploadStep.style.display = 'none';
-            document.getElementById('q-loading-box').style.display = 'flex';
+            document.getElementById('q-loading-box').style.display = 'block';
 
             try {
                 const fd = new FormData();
@@ -1138,7 +1102,6 @@
                 fd.append('product_type', currentProduct.category);
                 fd.append('product_fit', currentProduct.fit);
                 fd.append('api_key', keyToUse);
-                if (pixPaymentId) fd.append('pix_payment_id', pixPaymentId);
 
                 if (currentProduct.category === 'top') {
                     fd.append('height', '');
@@ -1166,9 +1129,9 @@
                     const data = await res.json();
                     if (data.error) {
                         document.getElementById('q-loading-box').style.display = 'none';
-                        photoStep.style.display = 'flex';
+                        document.getElementById('q-step-upload').style.display = 'block';
                         if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
-                            showError();
+                            alert("App desativado nesta loja");
                         } else {
                             alert(data.error);
                         }
@@ -1182,16 +1145,15 @@
                     document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
                     document.querySelector('.q-card-ia').classList.add('is-result');
                     document.getElementById('q-step-result').style.display = 'flex';
-                    loadRelatedProducts();
                 } else if (res.status === 401 || res.status === 403) {
                     document.getElementById('q-loading-box').style.display = 'none';
-                    photoStep.style.display = 'flex';
-                    showError();
+                    document.getElementById('q-step-upload').style.display = 'block';
+                    alert("App desativado nesta loja");
                 } else { throw new Error(); }
             } catch (e) {
                 document.getElementById('q-loading-box').style.display = 'none';
-                photoStep.style.display = 'flex';
-                showError();
+                document.getElementById('q-step-upload').style.display = 'block';
+                alert('Ocorreu um erro ao processar sua imagem (ou chave/servidor indisponíveis). Tente novamente.');
             }
         }
 
@@ -1210,7 +1172,8 @@
                 const data = await resp.json();
                 if (data.limited) {
                     genBtn.disabled = false;
-                    createPixAndPoll();
+                    alert('Você atingiu o limite de provas gratuitas.');
+                    genBtn.disabled = false;
                     return;
                 }
             } catch (_) {
@@ -1223,7 +1186,7 @@
     }
 
     // ─── EXECUTA APENAS EM PÁGINAS DE PRODUTO ────────────────────────────────────
-    const isProductPage = window.location.pathname.includes('/products/') || window.location.pathname.includes('/product/') || window.location.pathname.includes('/produtos/') || window.location.pathname.includes('/produto/') || window.location.pathname.includes('/p/') || window.location.pathname.includes('preview.html') || document.querySelector('meta[property="og:type"][content="product"]') || document.querySelector('meta[property="og:type"][content="nuvemshop:product"]') || document.querySelector('.js-product-detail') || document.querySelector('[data-store="product-detail"]');
+    const isProductPage = window.location.pathname.includes('/products/') || window.location.pathname.includes('/product/') || window.location.pathname.includes('/produtos/') || window.location.pathname.includes('/produto/') || window.location.pathname.includes('/p/') || window.location.pathname.includes('preview.html') || document.querySelector('meta[property="og:type"][content="product"]');
 
     if (isProductPage) {
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
