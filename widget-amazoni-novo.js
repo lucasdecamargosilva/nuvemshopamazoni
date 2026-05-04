@@ -7,9 +7,8 @@
 
     const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/gerador-oculos';
     const WEBHOOK_CHECK_LIMIT = 'https://n8n.segredosdodrop.com/webhook/amazoni-check-limit';
-    // PIX desativado por enquanto
-    // const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/califa-pix';
-    // const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/califa-pix-status';
+    const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/cacife-pix';
+    const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/cacife-pix-status';
     const SIZES_TOP = ['XXP', 'XP', 'P', 'M', 'G', 'XG', 'XXG', '3XG', '4XG', '5XG'];
     const SIZES_BOTTOM = ['36/XXP', '38/XP', '40/P', '42/M', '44/G', '46/XG', '48/XXG', '50/3XG', '52/4XG', '54/5XG'];
     const SIZES_BOTTOM_SW = ['XXP', 'XP', 'P', 'M', 'G', 'XG', 'XXG', '3XG', '4XG', '5XG'];
@@ -783,7 +782,7 @@
             } catch (e) {
                 hidePixScreen();
                 uploadStep.style.display = 'block';
-                alert('Erro ao gerar PIX. Tente novamente.');
+                showError();
             }
         }
 
@@ -806,7 +805,7 @@
         async function runGeneration() {
             const keyToUse = window.PROVOU_LEVOU_API_KEY;
             if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
-                alert("Erro: API Key não configurada neste script.");
+                showError();
                 return;
             }
 
@@ -854,9 +853,9 @@
                         document.getElementById('q-loading-box').style.display = 'none';
                         document.getElementById('q-step-upload').style.display = 'block';
                         if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
-                            alert("App desativado nesta loja");
+                            showError();
                         } else {
-                            alert(data.error);
+                            showError();
                         }
                         return;
                     }
@@ -872,12 +871,12 @@
                 } else if (res.status === 401 || res.status === 403) {
                     document.getElementById('q-loading-box').style.display = 'none';
                     document.getElementById('q-step-upload').style.display = 'block';
-                    alert("App desativado nesta loja");
+                    showError();
                 } else { throw new Error(); }
             } catch (e) {
                 document.getElementById('q-loading-box').style.display = 'none';
                 document.getElementById('q-step-upload').style.display = 'block';
-                alert('Ocorreu um erro ao processar sua imagem (ou chave/servidor indisponíveis). Tente novamente.');
+                showError();
             }
         }
 
@@ -896,8 +895,7 @@
                 const data = await resp.json();
                 if (data.limited) {
                     genBtn.disabled = false;
-                    alert('Você atingiu o limite de provas gratuitas.');
-                    genBtn.disabled = false;
+                    createPixAndPoll();
                     return;
                 }
             } catch (_) {
