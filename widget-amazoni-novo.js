@@ -137,16 +137,17 @@
 
         /* ── Inline button ── */
         .q-btn-inline-provador {
-            display: flex; align-items: center; justify-content: center; gap: 7px;
-            width: 100%; padding: 9px 16px; height: 38px;
-            background: transparent; color: var(--c-ink);
-            border: 1.5px solid var(--c-ink); border-radius: 6px;
-            font-family: 'Work Sans', var(--font-body), sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
-            cursor: pointer; transition: background 0.25s, color 0.25s;
-            margin-bottom: 10px; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 12px 14px;
+            background: transparent; color: #000;
+            border: 1px solid #000; border-radius: 999px;
+            font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            cursor: pointer; transition: background 0.3s, color 0.3s;
+            margin-bottom: 8px; box-sizing: border-box;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         }
-        .q-btn-inline-provador { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-        .q-btn-inline-provador:hover { background: var(--c-ink); color: #fff; }
+        .q-btn-inline-provador:hover { background: #000; color: #fff; }
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
@@ -260,7 +261,7 @@
             background: var(--c-surface);
             padding: 11px 14px; margin-bottom: 20px;
             font-size: 11.5px; color: var(--c-muted); line-height: 1.45;
-            border-radius: 6px;
+            border-radius: 999px;
         }
         .q-tip-box i { color: var(--c-ink); font-size: 15px; flex-shrink: 0; }
 
