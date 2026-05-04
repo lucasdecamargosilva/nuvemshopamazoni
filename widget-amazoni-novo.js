@@ -851,6 +851,15 @@
             selectedProductImgUrl = imgs[0] || '';
         }
 
+        // Amazoni: appPlanweb faz body.innerHTML replacements que criam
+        // uma cópia morta do modal (sem listeners). Precisamos remover a cópia
+        // morta e re-anexar o modal original antes de abrir.
+        function ensureModalInDom() {
+            const existing = document.getElementById('q-modal-ia');
+            if (existing && existing !== modal) existing.remove();
+            if (!modal.isConnected) document.body.appendChild(modal);
+        }
+
         function openModal() {
             // Lazy-load Phosphor Icons na primeira abertura
             if (!window.phosphorIconsLoaded) {
@@ -859,11 +868,9 @@
                 document.head.appendChild(ph);
                 window.phosphorIconsLoaded = true;
             }
-            // Amazoni theme (appPlanweb) pode fazer body.innerHTML replacements
-            // que desconectam o modal do DOM — re-append se necessário
-            var m = modal || document.getElementById('q-modal-ia');
-            if (m && !m.isConnected) document.body.appendChild(m);
-            if (m) { m.style.display = 'flex'; lockBodyScroll(); }
+            ensureModalInDom();
+            modal.style.display = 'flex';
+            lockBodyScroll();
         }
 
 
