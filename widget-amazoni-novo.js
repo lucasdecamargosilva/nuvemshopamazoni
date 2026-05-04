@@ -786,8 +786,8 @@
         const closeBtn = document.getElementById('q-close-btn');
         const backBtn = document.getElementById('q-btn-back');
         const retryBtn = document.getElementById('q-retry-btn');
-        const realInput = document.getElementById('q-real-input');
-        const triggerUpload = document.getElementById('q-trigger-upload');
+        const realInput = document.getElementById('q-gallery-input') || document.getElementById('q-real-input');
+        const triggerUpload = document.getElementById('q-trigger-upload') || document.getElementById('q-face-frame');
         const phoneInput = document.getElementById('q-phone');
 
 
@@ -930,12 +930,37 @@
             document.getElementById('q-step-upload').style.display = 'block';
             document.querySelector('.q-card-ia').classList.remove('is-result');
             userPhoto = null;
-            document.getElementById('q-pre-view').style.display = 'none';
+            var pv = document.getElementById('q-pre-view'); if (pv) pv.style.display = 'none';
             checkFields();
         };
 
 
-        triggerUpload.onclick = () => realInput.click();
+        if (triggerUpload) triggerUpload.onclick = () => { if (realInput) realInput.click(); };
+        // New design buttons (if present in HTML)
+        var cameraBtn = document.getElementById('q-btn-camera');
+        var galleryBtn = document.getElementById('q-btn-gallery');
+        var cameraInput = document.getElementById('q-camera-input');
+        var galleryInput2 = document.getElementById('q-gallery-input');
+        var faceFrame = document.getElementById('q-face-frame');
+        if (cameraBtn && cameraInput) cameraBtn.onclick = function() { cameraInput.click(); };
+        if (galleryBtn && galleryInput2) galleryBtn.onclick = function() { galleryInput2.click(); };
+        if (faceFrame && galleryInput2) faceFrame.onclick = function() { galleryInput2.click(); };
+        function handleNewPhotoInput(e) {
+            if (!e.target.files[0]) return;
+            userPhoto = e.target.files[0];
+            var rd = new FileReader();
+            rd.onload = function(ev) {
+                var pi = document.getElementById('q-pre-img');
+                var fp = document.getElementById('q-face-placeholder');
+                if (pi) { pi.src = ev.target.result; pi.style.display = 'block'; }
+                if (fp) fp.style.display = 'none';
+                checkFields();
+            };
+            rd.readAsDataURL(userPhoto);
+        }
+        if (cameraInput) cameraInput.onchange = handleNewPhotoInput;
+        if (galleryInput2) galleryInput2.onchange = handleNewPhotoInput;
+
 
         function showError() {
             var lb = document.getElementById('q-loading-box');
@@ -974,13 +999,13 @@
         document.getElementById('q-accept-terms').onchange = checkFields;
 
 
-        realInput.onchange = (e) => {
+        if (realInput) realInput.onchange = (e) => {
             userPhoto = e.target.files[0];
             if (userPhoto) {
                 const rd = new FileReader();
                 rd.onload = ev => {
                     document.getElementById('q-pre-img').src = ev.target.result;
-                    document.getElementById('q-pre-view').style.display = 'block';
+                    var pv2 = document.getElementById('q-pre-view'); if (pv2) pv2.style.display = 'block';
                     checkFields();
                 };
                 rd.readAsDataURL(userPhoto);
