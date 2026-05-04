@@ -748,14 +748,16 @@
         const inlineBtnText = document.createTextNode('Provador Virtual');
         inlineBtn.appendChild(inlineBtnText);
 
-        inlineBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        function handleTriggerClick(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
             const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
-        });
+        }
+
+        openBtn.addEventListener('click', handleTriggerClick, true);
+        inlineBtn.addEventListener('click', handleTriggerClick, true);
 
         // Posiciona acima do botão de compra
         const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
@@ -887,16 +889,7 @@
         }
 
 
-        openBtn.onclick = (e) => {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
-            applyProduct(detectProduct(prodName));
-            populateImageSelector();
-            openModal();
-        };
+
 
 
         closeBtn.onclick = () => closeModal();
