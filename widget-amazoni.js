@@ -998,7 +998,7 @@
                 const og = document.querySelector('meta[property="og:image"]')?.content;
                 if (og) uniqueImgs.push(upgradeImgUrl(og));
             }
-            return uniqueImgs.slice(0, 2);
+            return uniqueImgs.slice(0, 4);
         }
 
         function populateImageSelector() {
@@ -1264,10 +1264,37 @@
                     fd.append('quadril', '');
                 }
 
-                if (prodImg) {
+                // Coleta até 4 fotos do produto: 1ª como binary (compat), 2ª-4ª como base64 text.
+                // 1ª = prodImg (escolhida pelo cliente ou default); demais = extractImages() exceto a 1ª.
+                let allProdImgs = [];
+                if (prodImg) allProdImgs.push(prodImg);
+                try {
+                    if (typeof extractImages === 'function') {
+                        const extra = extractImages();
+                        for (const u of extra) {
+                            const cleanU = String(u || '').split('?')[0];
+                            if (!allProdImgs.some(p => String(p).split('?')[0] === cleanU)) {
+                                allProdImgs.push(u);
+                            }
+                        }
+                    }
+                } catch (_) {}
+                allProdImgs = allProdImgs.slice(0, 4);
+                console.log('[PL Amazoni] Enviando', allProdImgs.length, 'fotos do produto');
+                for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
                     try {
-                        const b = await fetch(prodImg).then(r => r.blob());
-                        fd.append('product_image', b, 'product.jpg');
+                        const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
+                        if (_pi === 0) {
+                            fd.append('product_image', _b, 'product.jpg');
+                        } else {
+                            const _b64 = await new Promise((resolve, reject) => {
+                                const _r = new FileReader();
+                                _r.onloadend = () => resolve(_r.result.split(',')[1]);
+                                _r.onerror = reject;
+                                _r.readAsDataURL(_b);
+                            });
+                            fd.append('product_image_' + (_pi+1) + '_b64', _b64);
+                        }
                     } catch (_) { }
                 }
 
