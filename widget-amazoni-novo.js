@@ -1129,7 +1129,7 @@
                     body: JSON.stringify({ phone })
                 });
                 const d = await r.json();
-                const used = (d.phone_count !== undefined ? d.phone_count : (d.count || 0));
+                const used = Math.max(d.phone_count || 0, d.ip_count || 0, d.count || 0);
                 const restantes = Math.max(0, 3 - used);
                 if (restantes > 0) {
                     _provasMsg.textContent = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
