@@ -123,7 +123,7 @@
         /* ── Trigger (selo sobre foto) ── */
         @keyframes q-shake { 0%,50%,100%{transform:rotate(0deg)} 10%,30%{transform:rotate(-10deg)} 20%,40%{transform:rotate(10deg)} }
         .q-btn-trigger-ia {
-            position: absolute; top: 14px; right: 14px; z-index: 100;
+            position: absolute; top: 60px; right: 14px; z-index: 100;
             background: none; border: none; padding: 0; cursor: pointer;
             width: 70px; height: 70px;
             display: flex; align-items: center; justify-content: center;
@@ -779,15 +779,40 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra
-        const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (buyBtn) {
-            buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
-        } else {
+        // Posiciona acima do botão de compra (Amazoni: js-addtocart dentro de [data-store="product-buy-button"])
+        function placeInlineBtn() {
+            if (document.querySelector('.q-btn-inline-provador') !== inlineBtn && document.querySelector('.q-btn-inline-provador')) return true;
+            const buyContainer = document.querySelector('[data-store="product-buy-button"]');
+            if (buyContainer) {
+                buyContainer.parentNode.insertBefore(inlineBtn, buyContainer);
+                return true;
+            }
+            const buyBtn = document.querySelector(
+                '.js-prod-submit-form, ' +
+                '.js-addtocart:not(.js-addtocart-placeholder-btn), ' +
+                '.btn-add-to-cart, ' +
+                '[data-component="product.add-to-cart"], ' +
+                '.product-buy-button button, .product-buy button'
+            );
+            if (buyBtn) {
+                const target = buyBtn.closest('[data-store="product-buy-button"], .product-buy, .row, form') || buyBtn.parentElement;
+                target.parentNode.insertBefore(inlineBtn, target);
+                return true;
+            }
             const variantsContainer = document.querySelector('.js-product-variants');
             if (variantsContainer) {
                 variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
+                return true;
             }
+            return false;
+        }
+        if (!placeInlineBtn()) {
+            // Theme pode renderizar form via JS depois — retry
+            let _t = 0;
+            const _iv = setInterval(() => {
+                _t++;
+                if (placeInlineBtn() || _t >= 12) clearInterval(_iv);
+            }, 500);
         }
         const genBtn      = document.getElementById('q-btn-generate');
         const nextBtn     = null; // single-step flow — no next button
