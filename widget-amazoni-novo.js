@@ -1,4 +1,6 @@
 (function () {
+    if (window.__PL_AMAZONI_LOADED__) { console.log('[PL Amazoni] Widget já carregado — ignorando duplicata.'); return; }
+    window.__PL_AMAZONI_LOADED__ = true;
     // ===============================================
     // 0. CHUMBAR A API KEY AQUI DIRETO NO CÓDIGO
     // ===============================================
