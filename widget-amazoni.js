@@ -779,10 +779,21 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra (Amazoni: js-addtocart dentro de [data-store="product-buy-button"])
+        // Posiciona acima do botão de compra (Amazoni tem 2: 1º=sticky bar, 2º=form principal)
         function placeInlineBtn() {
             if (document.querySelector('.q-btn-inline-provador') !== inlineBtn && document.querySelector('.q-btn-inline-provador')) return true;
-            const buyContainer = document.querySelector('[data-store="product-buy-button"]');
+            const allBuy = Array.from(document.querySelectorAll('[data-store="product-buy-button"]'));
+            // Filtrar containers em sticky bars (têm "fixed" nas classes ou ancestrais de sticky)
+            const mainBuy = allBuy.filter(el => {
+                let p = el.parentElement;
+                while (p && p !== document.body) {
+                    const cls = (p.className || '') + '';
+                    if (/fixed|sticky-buy|sticky_buy|js-sticky-buy/i.test(cls)) return false;
+                    p = p.parentElement;
+                }
+                return true;
+            });
+            const buyContainer = mainBuy[mainBuy.length - 1] || allBuy[allBuy.length - 1];
             if (buyContainer) {
                 buyContainer.parentNode.insertBefore(inlineBtn, buyContainer);
                 return true;
