@@ -548,7 +548,7 @@
                     <!-- Persistent header (all steps) -->
                     <div id="q-header-provador">
                         <h1>Provador Virtual</h1>
-                        <img src="https://acdn-us.mitiendanube.com/stores/001/667/065/themes/common/logo-3679032508185390437-1777516093-aa08e8228166836ab3115e127c601ffb1777516093.png" alt="Amazoni" style="height:36px;width:auto;filter:brightness(0);"/>
+                        <img src="https://acdn-us.mitiendanube.com/stores/001/667/065/themes/common/logo-3679032508185390437-1777516093-aa08e8228166836ab3115e127c601ffb1777516093.png" alt="Amazoni" style="height:56px;width:auto;filter:brightness(0);"/>
                     </div>
 
                     <!-- Main step -->
