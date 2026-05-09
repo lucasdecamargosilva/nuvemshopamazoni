@@ -140,7 +140,7 @@
             display: flex; align-items: center; justify-content: center; gap: 7px;
             width: 100%; padding: 13px 16px;
             background: transparent; color: var(--c-ink);
-            border: 1.5px solid var(--c-ink); border-radius: 0;
+            border: 1.5px solid var(--c-ink); border-radius: 6px;
             font-family: 'Work Sans', var(--font-body), sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
             cursor: pointer; transition: background 0.25s, color 0.25s;
             margin-bottom: 10px; box-sizing: border-box;
@@ -779,25 +779,36 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra (Amazoni tem 2: 1º=sticky bar, 2º=form principal)
-        function placeInlineBtn() {
-            if (document.querySelector('.q-btn-inline-provador') !== inlineBtn && document.querySelector('.q-btn-inline-provador')) return true;
-            const allBuy = Array.from(document.querySelectorAll('[data-store="product-buy-button"]'));
-            // Filtrar containers em sticky bars (têm "fixed" nas classes ou ancestrais de sticky)
-            const mainBuy = allBuy.filter(el => {
-                let p = el.parentElement;
-                while (p && p !== document.body) {
-                    const cls = (p.className || '') + '';
-                    if (/fixed|sticky-buy|sticky_buy|js-sticky-buy/i.test(cls)) return false;
-                    p = p.parentElement;
-                }
-                return true;
+        // Posiciona acima do botão de compra. Amazoni tem 2: form principal + sticky bar (rodapé no scroll).
+        // Coloca em AMBOS — clona o botão p/ o segundo container.
+        function makeInlineClone() {
+            const clone = inlineBtn.cloneNode(true);
+            clone.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+                applyProduct(detectProduct(prodName));
+                populateImageSelector();
+                openModal();
             });
-            const buyContainer = mainBuy[mainBuy.length - 1] || allBuy[allBuy.length - 1];
-            if (buyContainer) {
-                buyContainer.parentNode.insertBefore(inlineBtn, buyContainer);
-                return true;
+            return clone;
+        }
+        function placeInlineBtn() {
+            const allBuy = Array.from(document.querySelectorAll('[data-store="product-buy-button"]'));
+            if (allBuy.length) {
+                let placed = false;
+                allBuy.forEach(buyContainer => {
+                    if (buyContainer.parentNode.querySelector(':scope > .q-inline-wrapper-amazoni')) return;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'q-inline-wrapper-amazoni';
+                    wrapper.style.width = '100%';
+                    wrapper.appendChild(!inlineBtn.parentNode ? inlineBtn : makeInlineClone());
+                    buyContainer.parentNode.insertBefore(wrapper, buyContainer);
+                    placed = true;
+                });
+                return placed;
             }
+            // Fallback: por seletor de botão
             const buyBtn = document.querySelector(
                 '.js-prod-submit-form, ' +
                 '.js-addtocart:not(.js-addtocart-placeholder-btn), ' +
