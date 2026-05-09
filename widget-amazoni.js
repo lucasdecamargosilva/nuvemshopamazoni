@@ -1,4 +1,35 @@
 (function () {
+    // ─── SEO BACKLINK BADGE (static link to provoulevou.com.br for Google crawler) ───
+    (function() {
+        function injectPLBadge() {
+            try {
+                if (document.querySelector('.pl-seo-badge')) return;
+                var path = window.location.pathname;
+                var isProduct = path.includes('/produto/') || path.includes('/produtos/') || path.includes('/products/') || path.includes('/p/') || document.querySelector('meta[property="og:type"][content="product"]');
+                if (!isProduct) return;
+                var b = document.createElement('div');
+                b.className = 'pl-seo-badge';
+                b.style.cssText = 'font-size:10px;color:#aaa;text-align:center;padding:6px 0 10px;letter-spacing:0.3px;font-family:inherit;line-height:1.3;';
+                var a = document.createElement('a');
+                a.href = 'https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=amazoni';
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.title = 'Provador Virtual de Óculos — Provou Levou';
+                a.style.cssText = 'color:#888;text-decoration:none;';
+                a.textContent = 'Provador Virtual de Óculos — Provou Levou';
+                b.appendChild(a);
+                var buy = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"], .addtocart, button[name="add"], .product-form__cart-submit, .frame_product_action_button button, #form_comprar button');
+                if (buy && buy.parentNode) {
+                    buy.parentNode.insertBefore(b, buy.nextSibling);
+                }
+            } catch(e) {}
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectPLBadge);
+        else injectPLBadge();
+        setTimeout(injectPLBadge, 2500);
+    })();
+
+
     if (window.__PL_AMAZONI_LOADED__) { console.log('[PL Amazoni] Widget já carregado — ignorando duplicata.'); return; }
     window.__PL_AMAZONI_LOADED__ = true;
     // ===============================================
@@ -619,7 +650,7 @@
                     <div id="q-loading-box">
                         <div class="q-loading-texts">
                             <div class="q-loading-t1">Gerando sua prova...</div>
-                            <a href="https://provoulevou.com.br" target="_blank" class="q-loading-t2">
+                            <a href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=amazoni" target="_blank" class="q-loading-t2">
                                 <span>Powered by</span>
                                 <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou">
                             </a>
@@ -654,7 +685,7 @@
                     </div>
 
                 </div>
-                <a href="https://provoulevou.com.br" target="_blank" class="q-powered-footer">
+                <a href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=amazoni" target="_blank" class="q-powered-footer">
                     <span>Powered by</span>
                     <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" class="q-quantic-logo" alt="Provou Levou">
                 </a>
