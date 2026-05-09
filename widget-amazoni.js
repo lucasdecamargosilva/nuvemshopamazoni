@@ -1158,16 +1158,62 @@
             document.getElementById('q-step-pix').style.display = 'none';
         }
 
+        // ── Reaproveitamento de PIX pendente ──
+        // Evita criar um novo QR a cada abertura do modal: se há PIX pendente do
+        // mesmo telefone gerado há menos de 25min, reaproveita e continua polando.
+        const _PIX_LS_KEY = 'pl_pix_pending_v1';
+        const _PIX_TTL_MS = 25 * 60 * 1000; // 25 min (PIX MP expira em 30min)
+        function _pixLoadPending(phone) {
+            try {
+                const raw = localStorage.getItem(_PIX_LS_KEY);
+                if (!raw) return null;
+                const arr = JSON.parse(raw);
+                const now = Date.now();
+                const valid = arr.filter(p => p.phone === phone && (now - p.ts) < _PIX_TTL_MS);
+                return valid[0] || null;
+            } catch(_) { return null; }
+        }
+        function _pixSavePending(phone, payment_id, qr_code, qr_code_base64) {
+            try {
+                const raw = localStorage.getItem(_PIX_LS_KEY);
+                let arr = [];
+                try { arr = raw ? JSON.parse(raw) : []; } catch(_) {}
+                // Limpa expirados
+                const now = Date.now();
+                arr = arr.filter(p => (now - p.ts) < _PIX_TTL_MS && p.phone !== phone);
+                arr.push({ phone, payment_id, qr_code, qr_code_base64, ts: now });
+                localStorage.setItem(_PIX_LS_KEY, JSON.stringify(arr));
+            } catch(_) {}
+        }
+        function _pixClearPending(phone) {
+            try {
+                const raw = localStorage.getItem(_PIX_LS_KEY);
+                if (!raw) return;
+                let arr = JSON.parse(raw);
+                arr = arr.filter(p => p.phone !== phone);
+                localStorage.setItem(_PIX_LS_KEY, JSON.stringify(arr));
+            } catch(_) {}
+        }
+
         async function createPixAndPoll() {
             showPixScreen();
+            const phone = '55' + phoneInput.value.replace(/\D/g, '');
             try {
-                const resp = await fetch(WEBHOOK_PIX, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: 'cliente@provoulevou.com.br', phone: '55' + phoneInput.value.replace(/\D/g, '') })
-                });
-                const pix = await resp.json();
-                if (!pix.payment_id || !pix.qr_code) throw new Error('PIX inválido');
+                let pix;
+                const pending = _pixLoadPending(phone);
+                if (pending) {
+                    // Reaproveita PIX pendente
+                    pix = { payment_id: pending.payment_id, qr_code: pending.qr_code, qr_code_base64: pending.qr_code_base64 };
+                } else {
+                    const resp = await fetch(WEBHOOK_PIX, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: 'cliente@provoulevou.com.br', phone })
+                    });
+                    pix = await resp.json();
+                    if (!pix.payment_id || !pix.qr_code) throw new Error('PIX inválido');
+                    _pixSavePending(phone, pix.payment_id, pix.qr_code, pix.qr_code_base64);
+                }
 
                 document.getElementById('q-pix-qr-img').src = 'data:image/png;base64,' + pix.qr_code_base64;
                 document.getElementById('q-pix-code').value = pix.qr_code;
@@ -1182,6 +1228,7 @@
                         const st = await sr.json();
                         if (st.status === 'approved') {
                             stopPixPolling();
+                            _pixClearPending(phone);
                             document.getElementById('q-pix-status-msg').textContent = 'Pagamento confirmado!';
                             document.getElementById('q-pix-status-msg').className = 'q-pix-status q-pix-approved';
                             setTimeout(() => {
