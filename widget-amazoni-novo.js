@@ -807,9 +807,9 @@
                     </div>
                     </div>
                 </div>
-                <a href="https://provoulevou.com.br" target="_blank" class="q-powered-footer">
+                <a href="https://provoulevou.com.br/?utm_source=widget&utm_medium=parceiro&utm_campaign=amazoni" target="_blank" rel="dofollow noopener" class="q-powered-footer">
                     <span>Powered by</span>
-                    <img src="https://provoulevou.com.br/assets/provoulevou-logo.png" class="q-quantic-logo">
+                    <img src="https://provoulevou.com.br/assets/provoulevou-logo.png" class="q-quantic-logo" alt="Provou Levou - Provador Virtual com IA">
                 </a>
             </div>
         </div>
