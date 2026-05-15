@@ -330,6 +330,43 @@
             border-radius: 6px;
         }
         .q-tip-box i { color: var(--c-ink); font-size: 15px; flex-shrink: 0; }
+        /* ── Required field marker + shake feedback ── */
+        .q-required-mark { color: var(--c-danger); font-weight: 700; margin-left: 4px; }
+        @keyframes q-shake-x {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+            20%, 40%, 60%, 80% { transform: translateX(6px); }
+        }
+        .q-shake { animation: q-shake-x 0.5s cubic-bezier(.36,.07,.19,.97); }
+        .q-input.is-error {
+            border-color: var(--c-danger) !important;
+            background: rgba(204,51,51,0.06) !important;
+            box-shadow: 0 0 0 3px rgba(204,51,51,0.15);
+        }
+        .q-face-frame.is-error {
+            outline: 3px solid var(--c-danger);
+            outline-offset: 2px;
+            background: rgba(204,51,51,0.06);
+        }
+        .q-validation-hint {
+            display: none;
+            background: var(--c-danger);
+            color: #fff;
+            font-size: 13px; font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(204,51,51,0.25);
+            animation: q-pop-in 0.25s ease;
+        }
+        .q-validation-hint.is-visible { display: block; }
+        @keyframes q-pop-in {
+            0% { opacity: 0; transform: translateY(-6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
 
         /* ── Face frame ── */
         @keyframes q-frame-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
@@ -604,7 +641,7 @@
                     <div id="q-step-photo">
                         <!-- WhatsApp -->
                         <div class="q-phone-wrap">
-                            <span class="q-field-label">Seu WhatsApp</span>
+                            <span class="q-field-label">Seu WhatsApp<span class="q-required-mark">*</span></span>
                             <input type="tel" id="q-phone" class="q-input" placeholder="(11) 99999-9999" maxlength="15">
                             <div id="q-phone-error" class="q-status-msg">N&#250;mero inv&#225;lido</div>
                             <div id="q-provas-restantes" class="q-provas-msg"></div>
@@ -647,7 +684,8 @@
                             <span>Concordo com os <a href="http://provoulevou.com.br/termos.html" target="_blank">Termos e Condi&#231;&#245;es</a></span>
                         </label>
 
-                        <button class="q-btn-black" id="q-btn-generate" disabled>Provar &#243;culos</button>
+                        <div id="q-validation-hint" class="q-validation-hint"></div>
+                        <button class="q-btn-black" id="q-btn-generate">Provar &#243;culos</button>
                     </div>
 
                     <!-- PIX -->
@@ -1137,6 +1175,20 @@
         });
 
 
+
+        function flashError(targetEl, hintMsg) {
+            var hint = document.getElementById('q-validation-hint');
+            if (hint) {
+                hint.textContent = '\u26A0\uFE0F ' + hintMsg;
+                hint.classList.add('is-visible');
+            }
+            if (targetEl) {
+                targetEl.classList.add('is-error', 'q-shake');
+                setTimeout(function(){ targetEl.classList.remove('q-shake'); }, 600);
+                try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+                if (targetEl.focus) setTimeout(function(){ targetEl.focus(); }, 350);
+            }
+        }
         function checkPhoneStep() {
             const nums = phoneInput.value.replace(/\D/g, '');
             const phoneOk = isValidBRPhone(nums);
@@ -1148,7 +1200,7 @@
         function checkFields() {
             const nums = phoneInput.value.replace(/\D/g, '');
             const phoneOk = isValidBRPhone(nums);
-            genBtn.disabled = !(userPhoto && phoneOk && document.getElementById('q-accept-terms').checked);
+            /* aggressive validation: botão sempre clicável */
         }
 
         document.getElementById('q-accept-terms').onchange = checkFields;
@@ -1419,6 +1471,19 @@
         }
 
         genBtn.onclick = async () => {
+            // Validação agressiva (UI feedback)
+            var _vNums = (phoneInput.value || '').replace(/\D/g, '');
+            var _vPhoneOk = isValidBRPhone(_vNums);
+            var _vFaceFrame = document.getElementById('q-face-frame');
+            var _vTerms = document.getElementById('q-accept-terms');
+            if (!_vPhoneOk) { flashError(phoneInput, 'Preencha seu WhatsApp para continuar'); return; }
+            if (!userPhoto) { flashError(_vFaceFrame, 'Envie ou tire sua foto para continuar'); return; }
+            if (_vTerms && !_vTerms.checked) { flashError(document.querySelector('.q-terms-row'), 'Aceite os termos para continuar'); return; }
+            var _vHint = document.getElementById('q-validation-hint');
+            if (_vHint) _vHint.classList.remove('is-visible');
+            phoneInput.classList.remove('is-error');
+            if (_vFaceFrame) _vFaceFrame.classList.remove('is-error');
+
             if (!userPhoto) return;
             const _gNums = (phoneInput.value || '').replace(/\D/g, '');
             const _gPhoneOk = (_gNums.length === 10 || _gNums.length === 11) && /^[1-9][1-9]/.test(_gNums) && (_gNums.length === 10 || _gNums[2] === '9');
