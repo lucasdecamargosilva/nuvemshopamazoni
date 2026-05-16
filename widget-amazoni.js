@@ -1364,111 +1364,126 @@
 
         // ── GERAÇÃO PRINCIPAL ──
         async function runGeneration() {
-            const keyToUse = window.PROVOU_LEVOU_API_KEY;
-            if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
-                showError();
-                return;
-            }
 
-            const prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
-            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+            if (runGeneration._busy) return;
 
-            uploadStep.style.display = 'none';
-            document.getElementById('q-loading-box').style.display = 'flex';
+            runGeneration._busy = true;
 
             try {
-                const fd = new FormData();
-                fd.append('person_image', userPhoto, 'person.jpg');
-                fd.append('whatsapp', '55' + phoneInput.value.replace(/\D/g, ''));
-                fd.append('phone_raw', phoneInput.value);
-                fd.append('product_name', prodName);
-                fd.append('product_type', currentProduct.category);
-                fd.append('product_fit', currentProduct.fit);
-                fd.append('api_key', keyToUse);
-                if (pixPaymentId) fd.append('pix_payment_id', pixPaymentId);
-
-                if (currentProduct.category === 'top') {
-                    fd.append('height', '');
-                    fd.append('weight', '');
-                } else {
-                    fd.append('height', '');
-                    fd.append('weight', '');
-                    fd.append('cintura', '');
-                    fd.append('quadril', '');
+                const keyToUse = window.PROVOU_LEVOU_API_KEY;
+                if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
+                    showError();
+                    return;
                 }
 
-                // Coleta até 4 fotos do produto: 1ª como binary (compat), 2ª-4ª como base64 text.
-                // 1ª = prodImg (escolhida pelo cliente ou default); demais = extractImages() exceto a 1ª.
-                let allProdImgs = [];
-                if (prodImg) allProdImgs.push(prodImg);
+                const prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
+                const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+
+                uploadStep.style.display = 'none';
+                document.getElementById('q-loading-box').style.display = 'flex';
+
                 try {
-                    if (typeof extractImages === 'function') {
-                        const extra = extractImages();
-                        for (const u of extra) {
-                            const cleanU = String(u || '').split('?')[0];
-                            if (!allProdImgs.some(p => String(p).split('?')[0] === cleanU)) {
-                                allProdImgs.push(u);
+                    const fd = new FormData();
+                    fd.append('person_image', userPhoto, 'person.jpg');
+                    fd.append('whatsapp', '55' + phoneInput.value.replace(/\D/g, ''));
+                    fd.append('phone_raw', phoneInput.value);
+                    fd.append('product_name', prodName);
+                    fd.append('product_type', currentProduct.category);
+                    fd.append('product_fit', currentProduct.fit);
+                    fd.append('api_key', keyToUse);
+                    if (pixPaymentId) fd.append('pix_payment_id', pixPaymentId);
+
+                    if (currentProduct.category === 'top') {
+                        fd.append('height', '');
+                        fd.append('weight', '');
+                    } else {
+                        fd.append('height', '');
+                        fd.append('weight', '');
+                        fd.append('cintura', '');
+                        fd.append('quadril', '');
+                    }
+
+                    // Coleta até 4 fotos do produto: 1ª como binary (compat), 2ª-4ª como base64 text.
+                    // 1ª = prodImg (escolhida pelo cliente ou default); demais = extractImages() exceto a 1ª.
+                    let allProdImgs = [];
+                    if (prodImg) allProdImgs.push(prodImg);
+                    try {
+                        if (typeof extractImages === 'function') {
+                            const extra = extractImages();
+                            for (const u of extra) {
+                                const cleanU = String(u || '').split('?')[0];
+                                if (!allProdImgs.some(p => String(p).split('?')[0] === cleanU)) {
+                                    allProdImgs.push(u);
+                                }
                             }
                         }
+                    } catch (_) {}
+                    allProdImgs = allProdImgs.slice(0, 4);
+                    console.log('[PL Amazoni] Enviando', allProdImgs.length, 'fotos do produto');
+                    for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
+                        try {
+                            const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
+                            if (_pi === 0) {
+                                fd.append('product_image', _b, 'product.jpg');
+                            } else {
+                                const _b64 = await new Promise((resolve, reject) => {
+                                    const _r = new FileReader();
+                                    _r.onloadend = () => resolve(_r.result.split(',')[1]);
+                                    _r.onerror = reject;
+                                    _r.readAsDataURL(_b);
+                                });
+                                fd.append('product_image_' + (_pi+1) + '_b64', _b64);
+                            }
+                        } catch (_) { }
                     }
-                } catch (_) {}
-                allProdImgs = allProdImgs.slice(0, 4);
-                console.log('[PL Amazoni] Enviando', allProdImgs.length, 'fotos do produto');
-                for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
-                    try {
-                        const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
-                        if (_pi === 0) {
-                            fd.append('product_image', _b, 'product.jpg');
-                        } else {
-                            const _b64 = await new Promise((resolve, reject) => {
-                                const _r = new FileReader();
-                                _r.onloadend = () => resolve(_r.result.split(',')[1]);
-                                _r.onerror = reject;
-                                _r.readAsDataURL(_b);
-                            });
-                            fd.append('product_image_' + (_pi+1) + '_b64', _b64);
+
+                    calculateFinalSize();
+
+                    const res = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
+
+                    const contentType = res.headers.get("content-type") || "";
+                    if (contentType.includes("application/json")) {
+                        const data = await res.json();
+                        if (data.error) {
+                            document.getElementById('q-loading-box').style.display = 'none';
+                            photoStep.style.display = 'flex';
+                            if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
+                                showError();
+                            } else {
+                                alert(data.error);
+                            }
+                            return;
                         }
-                    } catch (_) { }
-                }
+                    }
 
-                calculateFinalSize();
-
-                const res = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
-
-                const contentType = res.headers.get("content-type") || "";
-                if (contentType.includes("application/json")) {
-                    const data = await res.json();
-                    if (data.error) {
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        document.getElementById('q-loading-box').style.display = 'none';
+                        document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
+                        document.querySelector('.q-card-ia').classList.add('is-result');
+                        document.getElementById('q-step-result').style.display = 'flex';
+                        loadRelatedProducts();
+                        if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
+                    } else if (res.status === 401 || res.status === 403) {
                         document.getElementById('q-loading-box').style.display = 'none';
                         photoStep.style.display = 'flex';
-                        if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
-                            showError();
-                        } else {
-                            alert(data.error);
-                        }
-                        return;
-                    }
-                }
-
-                if (res.ok) {
-                    const blob = await res.blob();
-                    document.getElementById('q-loading-box').style.display = 'none';
-                    document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
-                    document.querySelector('.q-card-ia').classList.add('is-result');
-                    document.getElementById('q-step-result').style.display = 'flex';
-                    loadRelatedProducts();
-                    if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
-                } else if (res.status === 401 || res.status === 403) {
+                        showError();
+                    } else { throw new Error(); }
+                } catch (e) {
                     document.getElementById('q-loading-box').style.display = 'none';
                     photoStep.style.display = 'flex';
                     showError();
-                } else { throw new Error(); }
-            } catch (e) {
-                document.getElementById('q-loading-box').style.display = 'none';
-                photoStep.style.display = 'flex';
-                showError();
+                }
+        
+
+            } finally {
+
+                runGeneration._busy = false;
+
             }
         }
+
+        
 
         genBtn.onclick = async () => {
             // Validação agressiva (UI feedback)
