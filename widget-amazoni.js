@@ -735,8 +735,8 @@
 
                     <!-- Erro -->
                     <div id="q-step-error">
-                        <h2>Provador fora do ar</h2>
-                        <p>Voltamos em breve &#x1F64F;</p>
+                        <h2>ALTA DEMANDA</h2>
+                        <p>Aguarde alguns segundos para tentar novamente.</p>
                         <button class="q-btn-outline" id="q-error-back">Voltar ao Produto</button>
                     </div>
 
@@ -1456,7 +1456,16 @@
 
                     calculateFinalSize();
 
-                    const res = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
+                    const res = await (async () => {
+                        let _d = 1500;
+                        for (let _i = 0; _i < 4; _i++) {
+                            const _r = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
+                            if (_r.ok || _r.status === 400 || _r.status === 401 || _r.status === 403) return _r;
+                            if (_i === 3) return _r;
+                            await new Promise(_x => setTimeout(_x, _d + Math.random() * 500));
+                            _d *= 2;
+                        }
+                    })();
 
                     const contentType = res.headers.get("content-type") || "";
                     if (contentType.includes("application/json")) {
