@@ -155,7 +155,6 @@
 
     const styles = `
         /* ── Fontes ── */
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 
         :root {
             --c-bg: #ffffff;
@@ -165,8 +164,8 @@
             --c-line: #e8e8e8;
             --c-accent: #111111;
             --c-danger: #cc3333;
-            --font-display: 'Bebas Neue', sans-serif;
-            --font-body: 'DM Sans', sans-serif;
+            --font-display: inherit;
+            --font-body: inherit;
         }
 
         /* ── Trigger (selo sobre foto) ── */
@@ -867,10 +866,6 @@
         }
 
         // Fontes (async, não bloqueia render)
-        const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap';
-        fontLink.rel = 'stylesheet';
-        document.head.appendChild(fontLink);
 
         // Phosphor Icons — carregado lazily na primeira abertura do modal
         // (não carrega na init para não impactar o tempo de carregamento da página)
@@ -882,6 +877,16 @@
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = html;
         document.body.appendChild(modalContainer);
+
+        // Usa a MESMA FONTE da loja no provador (em vez de Bebas Neue / DM Sans)
+        try {
+            var _bodyF = getComputedStyle(document.body).fontFamily;
+            var _h = document.querySelector('h1.product__title,.product-single__title,h1,h2');
+            var _headF = _h ? getComputedStyle(_h).fontFamily : _bodyF;
+            var _root = document.documentElement;
+            if (_bodyF) _root.style.setProperty('--font-body', _bodyF);
+            if (_headF) _root.style.setProperty('--font-display', _headF);
+        } catch (e) {}
 
 
         // ── Botão imagem PNG ──
