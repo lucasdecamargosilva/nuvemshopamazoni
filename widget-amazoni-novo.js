@@ -227,7 +227,7 @@
         .q-close-ia {
             position: absolute; top: 18px; right: 18px;
             background: none; border: none;
-            font-size: 26px; font-weight: 300; color: var(--c-muted);
+            font-size: 20px; font-weight: 300; color: var(--c-muted);
             cursor: pointer; z-index: 10; line-height: 1; padding: 4px 6px;
             transition: color 0.2s;
         }
@@ -259,7 +259,7 @@
         #q-header-provador h1 {
             margin: 0;
             font-family: var(--font-display);
-            font-size: 28px; letter-spacing: 4px;
+            font-size: 22px; letter-spacing: 4px;
             color: var(--c-ink); text-transform: uppercase;
             font-weight: 400; line-height: 1;
         }
@@ -315,7 +315,7 @@
         /* ── Section label ── */
         .q-section-label {
             font-family: var(--font-display);
-            font-size: 20px; letter-spacing: 3px; text-transform: uppercase;
+            font-size: 16px; letter-spacing: 3px; text-transform: uppercase;
             color: var(--c-ink); margin: 0 0 14px; font-weight: 400;
             text-align: center;
         }
@@ -423,7 +423,7 @@
             width: 100%; height: 52px;
             background: var(--c-ink); color: #fff;
             border: none; border-radius: 0;
-            font-family: var(--font-display); font-size: 17px;
+            font-family: var(--font-display); font-size: 14px;
             letter-spacing: 3px; text-transform: uppercase;
             cursor: pointer; transition: opacity 0.2s; box-sizing: border-box;
         }
@@ -433,7 +433,7 @@
             width: 100%; height: 52px;
             background: transparent; color: var(--c-ink);
             border: 1.5px solid var(--c-line); border-radius: 0;
-            font-family: var(--font-display); font-size: 17px;
+            font-family: var(--font-display); font-size: 14px;
             letter-spacing: 3px; text-transform: uppercase;
             cursor: pointer; transition: border-color 0.2s, background 0.2s; box-sizing: border-box;
         }
@@ -445,7 +445,7 @@
             padding: 36px 28px; flex-direction: column; gap: 16px; align-items: center;
         }
         #q-step-pix h2 {
-            font-family: var(--font-display); font-size: 24px;
+            font-family: var(--font-display); font-size: 19px;
             letter-spacing: 3px; text-transform: uppercase; margin: 0; font-weight: 400;
         }
         .q-pix-subtitle { font-size: 13px; color: var(--c-muted); margin: 0; line-height: 1.6; }
@@ -487,7 +487,7 @@
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .q-loading-t1 {
-            font-family: var(--font-display); font-size: 18px; letter-spacing: 4px;
+            font-family: var(--font-display); font-size: 15px; letter-spacing: 4px;
             text-transform: uppercase; color: var(--c-ink);
             animation: q-alt-show 3.6s ease-in-out infinite;
         }
@@ -511,7 +511,7 @@
 
         .q-res-title {
             display: block;
-            font-family: var(--font-display); font-size: 18px;
+            font-family: var(--font-display); font-size: 15px;
             letter-spacing: 3px; text-transform: uppercase;
             color: var(--c-ink); padding: 20px 28px 16px; margin: 0;
             border-bottom: 1px solid var(--c-line);
@@ -661,7 +661,7 @@
             padding: 52px 28px;
         }
         #q-step-error h2 {
-            font-family: var(--font-display); font-size: 22px;
+            font-family: var(--font-display); font-size: 18px;
             letter-spacing: 3px; text-transform: uppercase; margin: 0; font-weight: 400;
         }
         #q-step-error p { font-size: 13px; color: var(--c-muted); margin: 0; line-height: 1.6; }
