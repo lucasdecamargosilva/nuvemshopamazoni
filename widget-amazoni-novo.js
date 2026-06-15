@@ -1,4 +1,53 @@
 (function () {
+    function isValidBRPhone(nums) {
+        function setErr(msg) {
+            var el = document.getElementById('q-phone-error');
+            if (el) el.textContent = msg;
+        }
+        if (nums.length < 10) { setErr('N\u00famero incompleto — informe DDD + n\u00famero'); return false; }
+        if (nums.length > 11) { setErr('N\u00famero longo demais'); return false; }
+        if (!/^[1-9][1-9]/.test(nums)) { setErr('DDD inv\u00e1lido'); return false; }
+        if (nums.length === 11 && nums[2] !== '9') { setErr('Celular deve come\u00e7ar com 9 ap\u00f3s o DDD'); return false; }
+        var local = nums.length === 11 ? nums.slice(3) : nums.slice(2);
+        if (/^(\d)\1+$/.test(local)) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
+        if (/(\d)\1{5,}/.test(local)) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
+        if (/^(?:01234567|12345678|23456789|34567890|98765432|87654321|76543210|0123456789|1234567890)/.test(local)) { setErr('N\u00famero n\u00e3o parece real — confira'); return false; }
+        return true;
+    }
+
+
+    // ─── SEO BACKLINK BADGE (mini logo discreto pro crawler do Google) ───
+    (function() {
+        function injectPLBadge() {
+            try {
+                if (document.querySelector('.pl-seo-badge')) return;
+                var path = window.location.pathname;
+                var isProduct = path.includes('/produto/') || path.includes('/produtos/') || path.includes('/products/') || path.includes('/p/') || document.querySelector('meta[property="og:type"][content="product"]');
+                if (!isProduct) return;
+                var b = document.createElement('div');
+                b.className = 'pl-seo-badge';
+                b.style.cssText = 'text-align:center;padding:4px 0;margin:0;opacity:0.5;line-height:1;';
+                var a = document.createElement('a');
+                a.href = 'https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=amazoni';
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.title = 'Provador Virtual de Óculos — Provou Levou';
+                a.style.cssText = 'display:inline-block;text-decoration:none;border:0;outline:0;';
+                var img = document.createElement('img');
+                img.src = 'https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png';
+                img.alt = 'Provador Virtual de Óculos — Provou Levou';
+                img.style.cssText = 'height:12px;width:auto;border:0;display:block;';
+                a.appendChild(img);
+                b.appendChild(a);
+                document.body.appendChild(b);
+            } catch(e) {}
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectPLBadge);
+        else injectPLBadge();
+        setTimeout(injectPLBadge, 2500);
+    })();
+
+
     if (window.__PL_AMAZONI_LOADED__) { console.log('[PL Amazoni] Widget já carregado — ignorando duplicata.'); return; }
     window.__PL_AMAZONI_LOADED__ = true;
     // ===============================================
@@ -8,10 +57,9 @@
     window.PROVOU_LEVOU_API_KEY = apiKey;
 
     const WEBHOOK_PROVA = 'https://n8n.segredosdodrop.com/webhook/gerador-oculos';
+    const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/cacife-pix';
+    const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/cacife-pix-status';
     const WEBHOOK_CHECK_LIMIT = 'https://n8n.segredosdodrop.com/webhook/amazoni-check-limit';
-    // PIX desativado por enquanto
-    // const WEBHOOK_PIX = 'https://n8n.segredosdodrop.com/webhook/califa-pix';
-    // const WEBHOOK_PIX_STATUS = 'https://n8n.segredosdodrop.com/webhook/califa-pix-status';
     const SIZES_TOP = ['XXP', 'XP', 'P', 'M', 'G', 'XG', 'XXG', '3XG', '4XG', '5XG'];
     const SIZES_BOTTOM = ['36/XXP', '38/XP', '40/P', '42/M', '44/G', '46/XG', '48/XXG', '50/3XG', '52/4XG', '54/5XG'];
     const SIZES_BOTTOM_SW = ['XXP', 'XP', 'P', 'M', 'G', 'XG', 'XXG', '3XG', '4XG', '5XG'];
@@ -106,240 +154,140 @@
 
 
     const styles = `
+        /* ── Fontes ── */
+
         :root {
-            --q-primary: #000000;
-            --q-bg: #ffffff;
-            --q-border: #000000;
-            --q-gray: #f5f5f5;
-            --q-text: #000000;
-            --q-text-light: #666666;
+            --c-bg: #ffffff;
+            --c-surface: #f7f6f4;
+            --c-ink: #111111;
+            --c-muted: #999;
+            --c-line: #e8e8e8;
+            --c-accent: #111111;
+            --c-danger: #cc3333;
+            --font-display: inherit;
+            --font-body: inherit;
         }
 
-        /* ═══════════════════════════════════════════════
-           BOTÃO TRIGGER (selo flutuante sobre a imagem)
-        ═══════════════════════════════════════════════ */
-        @keyframes q-shake {
-            0%, 50%, 100% { transform: rotate(0deg); }
-            10%, 30% { transform: rotate(-10deg); }
-            20%, 40% { transform: rotate(10deg); }
-        }
+        /* ── Trigger (selo sobre foto) ── */
+        @keyframes q-shake { 0%,50%,100%{transform:rotate(0deg)} 10%,30%{transform:rotate(-10deg)} 20%,40%{transform:rotate(10deg)} }
         .q-btn-trigger-ia {
-            position: absolute;
-            top: 55px; right: 30px;
-            z-index: 100;
-            background: none; border: none; padding: 0;
-            cursor: pointer;
-            width: 72px; height: 72px;
+            position: absolute; top: 60px; right: 14px; z-index: 100;
+            background: none; border: none; padding: 0; cursor: pointer;
+            width: 70px; height: 70px;
             display: flex; align-items: center; justify-content: center;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+            filter: drop-shadow(0 3px 10px rgba(0,0,0,0.22));
             animation: q-shake 3s infinite;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
+            transition: filter 0.2s;
         }
-        .q-btn-trigger-ia:hover { filter: drop-shadow(0 4px 12px rgba(0,0,0,0.28)); }
-        .q-btn-trigger-ia svg { width: 100%; height: 100%; overflow: visible; }
-        @media (min-width: 768px) {
-            .q-btn-trigger-ia { width: 65px; height: 65px; }
-        }
+        .q-btn-trigger-ia:hover { filter: drop-shadow(0 6px 18px rgba(0,0,0,0.32)); }
+        .q-btn-trigger-ia img { width: 100%; height: 100%; object-fit: contain; }
+        @media (min-width: 768px) { .q-btn-trigger-ia { width: 70px; height: 70px; } }
 
-        /* ═══════════════════════════════════════════════
-           BOTÃO INLINE (acima do botão de comprar)
-        ═══════════════════════════════════════════════ */
+        /* ── Inline button ── */
         .q-btn-inline-provador {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%;
-            padding: 12px 14px;
-            background: transparent;
-            color: #000;
-            border: 1px solid #000;
-            border-radius: 999px;
-            font-family: 'Work Sans', sans-serif;
-            font-weight: 600; font-size: 10px;
-            letter-spacing: 1.5px; text-transform: uppercase;
-            cursor: pointer;
-            transition: background 0.3s, color 0.3s;
-            margin-bottom: 8px;
-            box-sizing: border-box;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            width: 100%; padding: 13px 16px;
+            background: transparent; color: var(--c-ink);
+            border: 1.5px solid var(--c-ink); border-radius: 6px;
+            font-family: 'Work Sans', var(--font-body), sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+            cursor: pointer; transition: background 0.25s, color 0.25s;
+            margin-bottom: 10px; box-sizing: border-box;
         }
-        .q-btn-inline-provador:hover { background: #000; color: #fff; }
+        .q-btn-inline-provador:hover { background: var(--c-ink); color: #fff; }
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-        /* ═══════════════════════════════════════════════
-           MODAL OVERLAY
-        ═══════════════════════════════════════════════ */
+        /* ── Modal overlay ── */
+        @keyframes q-modal-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         #q-modal-ia {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 999999;
-            background: rgba(255,255,255,0.98);
-            font-family: 'Inter', sans-serif;
-            overflow-y: auto;
-            box-sizing: border-box;
+            display: none; position: fixed; inset: 0; z-index: 999999;
+            background: rgba(240,238,235,0.96);
+            font-family: var(--font-body);
+            overflow-y: auto; box-sizing: border-box;
         }
         #q-modal-ia * { box-sizing: border-box; }
 
-        /* ═══════════════════════════════════════════════
-           CARD (container principal) - mobile first
-        ═══════════════════════════════════════════════ */
+        /* ── Card ── */
         .q-card-ia {
-            width: 100%;
-            min-height: 100vh;
-            background: #fff;
-            color: #000;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            width: 100%; min-height: 100vh;
+            background: var(--c-bg); color: var(--c-ink);
+            display: flex; flex-direction: column; position: relative;
+            animation: q-modal-in 0.35s cubic-bezier(0.22,1,0.36,1);
         }
-
         @media (min-width: 768px) {
             #q-modal-ia { display: none; align-items: center; justify-content: center; }
             .q-card-ia {
-                width: 620px;
-                max-width: 92vw;
-                min-height: auto;
-                max-height: 94vh;
-                border: 1px solid #000;
+                width: 440px; max-width: 92vw; min-height: auto;
+                max-height: 96vh; border: none;
+                box-shadow: 0 32px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
                 overflow: hidden;
             }
         }
 
-        /* ═══════════════════════════════════════════════
-           CLOSE BUTTON
-        ═══════════════════════════════════════════════ */
+        /* ── Close ── */
         .q-close-ia {
-            position: absolute;
-            top: 16px; right: 16px;
+            position: absolute; top: 18px; right: 18px;
             background: none; border: none;
-            font-size: 28px; font-weight: 300;
-            color: #000;
-            cursor: pointer;
-            z-index: 10;
-            line-height: 1;
-            padding: 4px 8px;
+            font-size: 26px; font-weight: 300; color: var(--c-muted);
+            cursor: pointer; z-index: 10; line-height: 1; padding: 4px 6px;
+            transition: color 0.2s;
         }
+        .q-close-ia:hover { color: var(--c-ink); }
 
-        /* ═══════════════════════════════════════════════
-           CONTENT SCROLL
-        ═══════════════════════════════════════════════ */
+        /* ── Content scroll ── */
         .q-content-scroll {
-            flex: 1;
-            padding: 24px 20px 24px;
-            overflow-y: auto;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+            flex: 1; padding: 0; overflow-y: auto;
+            text-align: left; display: flex; flex-direction: column;
         }
-        .q-content-scroll::-webkit-scrollbar { width: 4px; }
-        .q-content-scroll::-webkit-scrollbar-thumb { background: #e5e5e5; }
+        .q-content-scroll::-webkit-scrollbar { width: 3px; }
+        .q-content-scroll::-webkit-scrollbar-thumb { background: var(--c-line); }
 
-        /* Mobile: conteúdo não ocupa a tela toda — card se ajusta ao conteúdo */
         @media (max-width: 767px) {
-            .q-card-ia {
-                min-height: auto;
-                padding-top: env(safe-area-inset-top, 0px);
-                padding-bottom: env(safe-area-inset-bottom, 0px);
-            }
-            #q-modal-ia {
-                display: none;
-                overflow-y: auto;
-                padding: 20px;
-                align-items: flex-start;
-                justify-content: center;
-            }
-            #q-modal-ia[style*="flex"] { display: flex !important; }
-            .q-card-ia {
-                width: 100%;
-                max-width: 420px;
-                border: 1px solid #000;
-                margin: auto;
-            }
-            .q-content-scroll {
-                flex: none;
-                padding: 28px 20px;
-            }
+            #q-modal-ia { display:none; overflow-y:auto; align-items:flex-start; justify-content:center; }
+            #q-modal-ia[style*="flex"] { display:flex !important; }
+            .q-card-ia { width:100%; border:none; margin:0; min-height:100svh; }
+            .q-content-scroll { flex: 1; }
         }
 
-        /* ═══════════════════════════════════════════════
-           HEADER
-        ═══════════════════════════════════════════════ */
+        /* ── Header strip ── */
         #q-header-provador {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
+            padding: 28px 28px 0;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; gap: 10px;
+            border-bottom: 1px solid var(--c-line);
+            padding-bottom: 22px; margin-bottom: 0;
         }
         #q-header-provador h1 {
             margin: 0;
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-family: var(--font-display);
+            font-size: 28px; letter-spacing: 4px;
+            color: var(--c-ink); text-transform: uppercase;
+            font-weight: 400; line-height: 1;
         }
 
-        /* ═══════════════════════════════════════════════
-           STEP UPLOAD (tela principal)
-        ═══════════════════════════════════════════════ */
-        #q-step-upload {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            align-items: stretch;
+        /* ── Main step ── */
+        #q-step-photo {
+            display: flex; flex-direction: column; padding: 28px 28px 32px;
+            gap: 0; align-items: stretch;
         }
 
-        /* Form rows */
-        .q-form-row {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 100%;
+        /* ── Labels & inputs ── */
+        .q-field-label {
+            display: block; font-size: 10px; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--c-muted); margin-bottom: 8px;
         }
-        .q-form-row label {
-            display: block;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #000;
-            text-align: center;
-        }
-
-        /* Input */
+        .q-phone-wrap { margin-bottom: 28px; }
         .q-input {
-            display: block;
-            width: 100%;
-            height: 56px;
-            padding: 0 16px;
-            margin: 0;
-            background: transparent;
-            border: 1px solid #000;
-            border-radius: 0;
-            font-size: 16px;
-            font-family: 'Inter', sans-serif;
-            color: #000;
-            text-align: center;
-            outline: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            box-sizing: border-box;
+            display: block; width: 100%; height: 52px;
+            padding: 0 16px; margin: 0;
+            background: var(--c-surface); border: 1.5px solid transparent;
+            border-bottom: 1.5px solid var(--c-line); border-radius: 0;
+            font-size: 16px; font-family: var(--font-body); font-weight: 400;
+            color: var(--c-ink); outline: none;
+            -webkit-appearance: none; appearance: none; transition: border-color 0.2s;
         }
-        .q-input:focus { border-width: 2px; padding: 0 15px; }
-        @media (max-width: 767px) {
-            .q-input {
-                height: 72px !important;
-                padding: 0 20px !important;
-                font-size: 22px !important;
-                font-weight: 500 !important;
-                letter-spacing: 0.02em !important;
-            }
-            .q-input:focus { padding: 0 19px !important; }
-        }
-        .q-input::placeholder { color: #999; }
+        .q-input:focus { border-color: var(--c-ink); background: #fff; }
+        .q-input::placeholder { color: #bbb; }
 
         .q-provas-msg:empty { display: none; }
         .q-provas-msg {
@@ -359,362 +307,369 @@
             font-weight: 600;
         }
 
-
-        /* Error message */
         .q-status-msg {
-            display: none;
-            font-size: 10px;
-            letter-spacing: 1px;
-            color: #ef4444;
-            font-weight: 600;
+            display: none; font-size: 11px; color: var(--c-danger);
+            font-weight: 500; margin-top: 6px; letter-spacing: 0.3px;
+        }
+
+        /* ── Section label ── */
+        .q-section-label {
+            font-family: var(--font-display);
+            font-size: 20px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--c-ink); margin: 0 0 14px; font-weight: 400;
             text-align: center;
-            text-transform: uppercase;
-            margin-top: 4px;
         }
 
-        /* Upload row */
-        #q-upload-row {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
+        /* ── Tip ── */
+        .q-tip-box {
+            display: flex; align-items: center; gap: 9px;
+            background: var(--c-surface);
+            padding: 11px 14px; margin-bottom: 20px;
+            font-size: 11.5px; color: var(--c-muted); line-height: 1.45;
+            border-radius: 6px;
         }
-        #q-trigger-upload {
-            width: 140px; height: 180px;
-            border: 1px solid #000;
-            background: #f5f5f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: 0.3s;
+        .q-tip-box i { color: var(--c-ink); font-size: 15px; flex-shrink: 0; }
+        /* ── Required field marker + shake feedback ── */
+        .q-required-mark { color: var(--c-danger); font-weight: 700; margin-left: 4px; }
+        @keyframes q-shake-x {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+            20%, 40%, 60%, 80% { transform: translateX(6px); }
         }
-        #q-trigger-upload:hover { background: #ebebeb; }
-        #q-trigger-upload i { font-size: 32px; color: #000; }
-        #q-trigger-upload span {
-            font-size: 10px; font-weight: 700;
-            letter-spacing: 1.5px; text-transform: uppercase;
+        .q-shake { animation: q-shake-x 0.5s cubic-bezier(.36,.07,.19,.97); }
+        .q-input.is-error {
+            border-color: var(--c-danger) !important;
+            background: rgba(204,51,51,0.06) !important;
+            box-shadow: 0 0 0 3px rgba(204,51,51,0.15);
         }
-        #q-pre-view {
+        .q-face-frame.is-error {
+            outline: 3px solid var(--c-danger);
+            outline-offset: 2px;
+            background: rgba(204,51,51,0.06);
+        }
+        .q-validation-hint {
             display: none;
-            width: 140px; height: 180px;
-            border: 1px solid #000;
-            overflow: hidden;
-        }
-        #q-pre-view img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Terms */
-        .q-terms-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            justify-content: center;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #64748b;
-            cursor: pointer;
-            max-width: 340px;
-            margin: 0 auto;
-            text-align: left;
-        }
-        .q-terms-row input { margin-top: 3px; cursor: pointer; accent-color: #000; flex-shrink: 0; }
-        .q-terms-row a { color: #8b5cf6; text-decoration: underline; }
-
-        /* Buttons */
-        .q-btn-black {
-            width: 100%;
-            height: 54px;
-            background: #000;
+            background: var(--c-danger);
             color: #fff;
-            border: 1px solid #000;
-            border-radius: 0;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.3s;
-            box-sizing: border-box;
-        }
-        .q-btn-black:hover:not(:disabled) { background: #fff; color: #000; }
-        .q-btn-black:disabled {
-            background: #f5f5f5;
-            color: #999;
-            border-color: #e0e0e0;
-            cursor: not-allowed;
-        }
-        .q-btn-outline {
-            width: 100%;
-            height: 54px;
-            background: #fff;
-            color: #000;
-            border: 1px solid #000;
-            border-radius: 0;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.3s;
-            box-sizing: border-box;
-        }
-        .q-btn-outline:hover { background: #000; color: #fff; }
-
-        /* ═══════════════════════════════════════════════
-           PIX SCREEN
-        ═══════════════════════════════════════════════ */
-        #q-step-pix {
-            display: none;
+            font-size: 13px; font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
             text-align: center;
-            padding: 20px 0;
-            flex-direction: column;
-            gap: 16px;
-            align-items: center;
+            box-shadow: 0 3px 10px rgba(204,51,51,0.25);
+            animation: q-pop-in 0.25s ease;
+        }
+        .q-validation-hint.is-visible { display: block; }
+        @keyframes q-pop-in {
+            0% { opacity: 0; transform: translateY(-6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+
+        /* ── Face frame ── */
+        @keyframes q-frame-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+        .q-face-frame {
+            position: relative; width: 200px; height: 260px;
+            margin: 0 auto 24px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; background: var(--c-surface);
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+        .q-face-frame:hover { transform: scale(1.015); }
+        .q-face-frame img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .q-face-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .q-face-placeholder i { font-size: 72px; color: #d0d0d0; }
+        /* Corner marks — clean editorial style */
+        .q-face-corner {
+            position: absolute; width: 20px; height: 20px;
+            border-color: var(--c-ink); border-style: solid;
+            transition: border-color 0.2s;
+        }
+        .q-face-corner-tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+        .q-face-corner-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+        .q-face-corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+        .q-face-corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+        /* ── Upload buttons ── */
+        .q-upload-btns {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; width: 100%; margin-bottom: 24px;
+        }
+        .q-upload-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 12px 8px;
+            border: 1.5px solid var(--c-line);
+            background: transparent; color: var(--c-ink);
+            font-family: var(--font-body); font-size: 12px; font-weight: 500;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s; border-radius: 4px;
+        }
+        .q-upload-btn:hover { border-color: var(--c-ink); background: var(--c-surface); }
+        .q-upload-btn i { font-size: 16px; }
+
+        /* ── Terms ── */
+        .q-terms-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 11.5px; color: var(--c-muted); cursor: pointer;
+            line-height: 1.5; margin-bottom: 20px;
+            justify-content: center; text-align: center;
+        }
+        .q-terms-row input { margin-top: 3px; cursor: pointer; accent-color: var(--c-ink); flex-shrink: 0; }
+        .q-terms-row a { color: var(--c-ink); text-decoration: underline; text-underline-offset: 2px; }
+
+        /* ── CTA buttons ── */
+        .q-btn-black {
+            width: 100%; height: 52px;
+            background: var(--c-ink); color: #fff;
+            border: none; border-radius: 0;
+            font-family: var(--font-display); font-size: 17px;
+            letter-spacing: 3px; text-transform: uppercase;
+            cursor: pointer; transition: opacity 0.2s; box-sizing: border-box;
+        }
+        .q-btn-black:hover:not(:disabled) { opacity: 0.82; }
+        .q-btn-black:disabled { background: #ccc; cursor: not-allowed; }
+        .q-btn-outline {
+            width: 100%; height: 52px;
+            background: transparent; color: var(--c-ink);
+            border: 1.5px solid var(--c-line); border-radius: 0;
+            font-family: var(--font-display); font-size: 17px;
+            letter-spacing: 3px; text-transform: uppercase;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s; box-sizing: border-box;
+        }
+        .q-btn-outline:hover { border-color: var(--c-ink); background: var(--c-surface); }
+
+        /* ── PIX screen ── */
+        #q-step-pix {
+            display: none; text-align: center;
+            padding: 36px 28px; flex-direction: column; gap: 16px; align-items: center;
         }
         #q-step-pix h2 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin: 0;
+            font-family: var(--font-display); font-size: 24px;
+            letter-spacing: 3px; text-transform: uppercase; margin: 0; font-weight: 400;
         }
-        .q-pix-subtitle {
-            font-size: 12px;
-            color: #666;
-            letter-spacing: 0.5px;
-            margin: 0;
-            line-height: 1.5;
-        }
-        .q-pix-qr {
-            width: 200px; height: 200px;
-            border: 1px solid #000;
-            padding: 8px;
-        }
+        .q-pix-subtitle { font-size: 13px; color: var(--c-muted); margin: 0; line-height: 1.6; }
+        .q-pix-qr { width: 180px; height: 180px; border: 1px solid var(--c-line); padding: 6px; margin: 0 auto; }
         .q-pix-qr img { width: 100%; height: 100%; }
-        .q-pix-copiacola {
-            display: flex;
-            gap: 8px;
-            width: 100%;
-            max-width: 340px;
-        }
+        .q-pix-copiacola { display: flex; gap: 8px; width: 100%; max-width: 320px; margin: 0 auto; }
         .q-pix-copiacola input {
-            flex: 1;
-            height: 42px;
-            padding: 0 12px;
-            border: 1px solid #000;
-            background: #f5f5f5;
-            font-size: 11px;
-            font-family: 'Inter', sans-serif;
-            outline: none;
-            min-width: 0;
-            box-sizing: border-box;
+            flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--c-line);
+            background: var(--c-surface); font-size: 11px; font-family: var(--font-body);
+            outline: none; min-width: 0;
         }
         .q-pix-copiacola button {
-            height: 42px;
-            padding: 0 16px;
-            background: #000;
-            color: #fff;
-            border: 1px solid #000;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            white-space: nowrap;
+            height: 40px; padding: 0 14px; background: var(--c-ink); color: #fff;
+            border: none; font-size: 10px; font-weight: 600; letter-spacing: 1px;
+            text-transform: uppercase; cursor: pointer;
         }
-        .q-pix-status {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #666;
-        }
+        .q-pix-status { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--c-muted); }
         @keyframes q-pix-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
-        .q-pix-waiting { animation: q-pix-pulse 1.5s infinite ease-in-out; color: #f59e0b; }
-        .q-pix-approved { color: #22c55e; }
-        .q-pix-cancel {
-            font-size: 11px;
-            color: #666;
-            text-decoration: underline;
-            cursor: pointer;
-            margin-top: 6px;
+        .q-pix-waiting { animation: q-pix-pulse 1.5s infinite ease-in-out; color: #d97706; }
+        .q-pix-approved { color: #16a34a; }
+        .q-pix-cancel { font-size: 11px; color: var(--c-muted); text-decoration: underline; cursor: pointer; margin-top: 4px; }
+
+        /* ── Loading ── */
+        @keyframes q-slide { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+        @keyframes q-alt-show { 0%,5%{opacity:0;transform:translateY(6px)} 15%,45%{opacity:1;transform:translateY(0)} 55%,100%{opacity:0;transform:translateY(-6px)} }
+        @keyframes q-alt-hide { 0%,55%{opacity:0;transform:translateY(6px)} 65%,95%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-6px)} }
+        #q-loading-box {
+            display: none; padding: 28px;
+            text-align: center; flex: 1; flex-direction: column;
+            align-items: center; justify-content: center; min-height: 60vh;
+        }
+        .q-loading-texts {
+            position: relative; height: 36px; width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+        }
+        .q-loading-t1, .q-loading-t2 {
+            position: absolute; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .q-loading-t1 {
+            font-family: var(--font-display); font-size: 18px; letter-spacing: 4px;
+            text-transform: uppercase; color: var(--c-ink);
+            animation: q-alt-show 3.6s ease-in-out infinite;
+        }
+        .q-loading-t2 {
+            animation: q-alt-hide 3.6s ease-in-out infinite;
+            text-decoration: none; opacity: 0;
+        }
+        .q-loading-t2 span {
+            font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--c-muted); font-family: var(--font-body);
+        }
+        .q-loading-t2 img { height: 16px; width: auto; opacity: 0.7; }
+        .q-loading-bar { height: 1px; background: var(--c-line); width: 100%; position: relative; overflow: hidden; }
+        .q-loading-bar > div {
+            position: absolute; top: 0; left: 0; height: 100%; width: 35%;
+            background: var(--c-ink); animation: q-slide 1.4s infinite linear;
         }
 
-        /* ═══════════════════════════════════════════════
-           LOADING
-        ═══════════════════════════════════════════════ */
-        @keyframes q-slide { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-        @keyframes q-pulse-text { 0%,100% { opacity: 0.4; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
-        #q-loading-box {
-            display: none;
-            padding: 60px 0;
+        /* ── Result ── */
+        #q-step-result { display: none; flex-direction: column; gap: 0; align-items: stretch; }
+
+        .q-res-title {
+            display: block;
+            font-family: var(--font-display); font-size: 18px;
+            letter-spacing: 3px; text-transform: uppercase;
+            color: var(--c-ink); padding: 20px 28px 16px; margin: 0;
+            border-bottom: 1px solid var(--c-line);
             text-align: center;
         }
-        #q-loading-box > div:first-child {
-            font-weight: 700;
-            font-size: 12px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            animation: q-pulse-text 1.5s infinite ease-in-out;
-        }
-        .q-loading-bar {
-            height: 2px;
-            background: #f5f5f5;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        .q-loading-bar > div {
-            position: absolute;
-            top: 0; left: 0;
-            height: 100%; width: 30%;
-            background: #000;
-            animation: q-slide 1.5s infinite linear;
-        }
+        .q-res-subtitle, .q-res-note { display: none; }
 
-        /* ═══════════════════════════════════════════════
-           RESULT SCREEN
-        ═══════════════════════════════════════════════ */
-        #q-step-result {
-            display: none;
-            flex-direction: column;
-            gap: 24px;
-            align-items: stretch;
-        }
         #q-result-img-col {
-            width: 100%;
-            border: 1px solid #000;
-            background: #f5f5f5;
-            overflow: hidden;
+            width: 100%; max-height: 56vh; background: var(--c-surface);
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
-        #q-result-img-col img { width: 100%; height: auto; display: block; }
+        #q-result-img-col img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+
         #q-result-actions-col {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: flex; flex-direction: column; gap: 13px;
+            padding: 20px 28px 0;
         }
-        .q-res-title, .q-res-subtitle, .q-res-note { display: none; }
-        .q-res-mobile-only {
-            margin: 10px 0 0;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #666;
-            cursor: pointer;
-            text-decoration: underline;
-            text-underline-offset: 4px;
+        .q-res-mobile-only { margin: 0; }
+
+        /* CTA de compra na tela de resultado */
+        .q-result-prodinfo { text-align: left; margin-bottom: 6px; }
+        .q-result-prodname {
+            font-family: var(--font-body); font-size: 16px; font-weight: 700;
+            color: var(--c-ink); line-height: 1.25; margin-bottom: 6px;
+        }
+        .q-result-prodprice {
+            font-family: var(--font-display); font-size: 22px; letter-spacing: .5px; font-weight: 700;
+            color: var(--c-ink); line-height: 1;
+        }
+        .q-scarcity {
+            margin-top: 12px; font-family: var(--font-body); font-size: 11px; font-weight: 700;
+            color: var(--c-danger); letter-spacing: 1.5px; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: flex-start; gap: 6px;
+        }
+        .q-scarcity i { font-size: 15px; }
+        /* Selos de segurança */
+        .q-seals {
+            display: flex; justify-content: flex-start; gap: 30px;
+            margin: 18px 0; padding: 15px 0;
+            border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line);
+        }
+        .q-seal { display: flex; align-items: center; gap: 9px; }
+        .q-seal > i { font-size: 24px; color: var(--c-ink); flex-shrink: 0; }
+        .q-seal span {
+            font-family: var(--font-body); font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .6px; line-height: 1.25;
+            color: var(--c-ink); text-align: left;
+        }
+        .q-fakebuy {
+            position: fixed; left: 18px; bottom: 18px; z-index: 2147483000;
+            background: var(--c-bg, #fff); color: var(--c-ink); border: 1px solid var(--c-line); border-radius: 10px;
+            box-shadow: 0 8px 28px -6px rgba(0,0,0,.28); padding: 11px 14px;
+            display: flex; align-items: center; gap: 10px; max-width: 290px;
+            font-family: var(--font-body); opacity: 0; transform: translateY(14px);
+            pointer-events: none; transition: opacity .35s ease, transform .35s ease;
+        }
+        .q-fakebuy.show { opacity: 1; transform: translateY(0); }
+        .q-fakebuy > i { font-size: 22px; color: var(--c-ink); flex-shrink: 0; }
+        .q-fakebuy strong { font-size: 12.5px; font-weight: 700; }
+        .q-fakebuy > div { display: flex; flex-direction: column; line-height: 1.35; }
+        .q-fakebuy span { font-size: 10.5px; color: var(--c-muted); }
+        @media (max-width:560px){ .q-fakebuy{ left:12px; right:12px; bottom:12px; max-width:none; } }
+        .q-btn-buy-now {
+            background: var(--c-ink); color: #fff; border: 1px solid var(--c-ink);
+            width: 100%; padding: 17px 18px; font-family: var(--font-body);
+            font-weight: 700; font-size: 15px; letter-spacing: .2px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            border-radius: 3px; transition: .2s; line-height: 1.2;
+        }
+        .q-btn-buy-now:hover { opacity: .88; }
+        .q-btn-buy-now .q-buy-price { font-weight: 800; white-space: nowrap; }
+        .q-buy-trust {
+            text-align: center; font-size: 11px; color: var(--c-muted);
+            margin-top: 2px; letter-spacing: .2px;
         }
 
-        /* Result mode on desktop */
+        /* ── Related products ── */
+        #q-related-products { padding: 0 28px 28px; }
+        #q-related-products h4 {
+            font-family: var(--font-display); font-size: 13px;
+            letter-spacing: 3px; text-transform: uppercase;
+            color: var(--c-muted); margin: 20px 0 12px; font-weight: 400;
+        }
+        .q-related-grid {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .q-related-grid::-webkit-scrollbar { display: none; }
+        .q-related-card {
+            flex: 0 0 calc(33.333% - 7px); min-width: 88px;
+            text-decoration: none; color: var(--c-ink);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .q-related-card img {
+            width: 100%; aspect-ratio: 1/1; object-fit: cover;
+            border: 1px solid var(--c-line); display: block; border-radius: 3px;
+        }
+        .q-related-card-name {
+            font-size: 10px; font-weight: 500; line-height: 1.4; color: var(--c-ink);
+            overflow: hidden; display: -webkit-box;
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+
+        /* Desktop result split */
         @media (min-width: 768px) {
-            .q-card-ia.is-result {
-                width: 1000px !important;
-                max-width: 92vw !important;
-                height: 660px !important;
-            }
-            .q-card-ia.is-result #q-header-provador,
-            .q-card-ia.is-result .q-powered-footer { display: none !important; }
+            .q-card-ia.is-result { width: 780px !important; max-width: 90vw !important; max-height: 92vh !important; }
+                /* .q-powered-footer always visible */
             .q-card-ia.is-result .q-content-scroll {
-                padding: 0 !important;
-                height: 100% !important;
-                overflow: hidden !important;
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 0 !important;
+                padding: 0 !important; overflow-y: auto !important;
+                display: flex !important; flex-direction: column !important;
             }
             .q-card-ia.is-result #q-step-result {
-                display: flex !important;
-                flex-direction: row !important;
-                width: 100%; height: 100%;
-                align-items: stretch;
-                gap: 0 !important;
-            }
-            .q-card-ia.is-result #q-result-img-col {
-                width: 45% !important; height: 100% !important;
-                margin: 0 !important;
-                border: none !important;
-                border-right: 1px solid #000 !important;
-                position: relative !important;
-                flex-shrink: 0;
-            }
-            .q-card-ia.is-result #q-result-img-col img {
-                position: absolute !important; top: 0; left: 0;
-                width: 100% !important; height: 100% !important;
-                object-fit: cover !important;
-                object-position: top center !important;
-            }
-            .q-card-ia.is-result #q-result-actions-col {
-                width: 55% !important; height: 100% !important;
-                padding: 40px !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                box-sizing: border-box;
-                overflow-y: auto;
+                display: flex !important; flex-direction: row !important;
+                flex-wrap: wrap !important; width: 100%; align-items: stretch; gap: 0;
             }
             .q-card-ia.is-result .q-res-title {
-                display: block !important;
-                font-size: 20px; font-weight: 700;
-                letter-spacing: 2px; text-transform: uppercase;
-                color: #000; margin-bottom: 4px;
+                flex-basis: 100%; order: -1;
+                font-size: 16px; letter-spacing: 3px;
+                padding: 16px 24px; border-bottom: 1px solid var(--c-line);
             }
-            .q-card-ia.is-result .q-res-mobile-only { display: none !important; }
-            .q-card-ia.is-result .q-close-ia { top: 16px; right: 16px; z-index: 10; }
+            .q-card-ia.is-result #q-result-img-col {
+                width: 44% !important; min-height: 360px !important;
+                border-right: 1px solid var(--c-line); flex-shrink: 0;
+            }
+            .q-card-ia.is-result #q-result-img-col img {
+                width: 100% !important; height: 100% !important;
+                object-fit: cover !important; object-position: top center !important;
+            }
+            .q-card-ia.is-result #q-result-actions-col {
+                width: 56% !important; padding: 28px 24px !important;
+                display: flex !important; flex-direction: column !important;
+                justify-content: flex-start; gap: 10px;
+                overflow-y: auto;
+            }
+            .q-card-ia.is-result #q-related-products { padding: 0; margin-top: 4px; }
+            .q-card-ia.is-result .q-res-mobile-only { display: flex !important; }
         }
 
-        /* ═══════════════════════════════════════════════
-           POWERED FOOTER
-        ═══════════════════════════════════════════════ */
-        .q-powered-footer {
-            background: #fff;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex-shrink: 0;
-            border-top: 1px solid #f5f5f5;
-            text-decoration: none;
-        }
-        .q-powered-footer span {
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #666;
-        }
-
+        /* ── Error screen ── */
         #q-step-error {
-            display: none;
-            flex-direction: column;
-            gap: 24px;
-            align-items: center;
-            text-align: center;
-            padding: 40px 0;
+            display: none; flex-direction: column; gap: 20px;
+            align-items: center; text-align: center;
+            padding: 52px 28px;
         }
         #q-step-error h2 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin: 0;
-            color: #000;
+            font-family: var(--font-display); font-size: 22px;
+            letter-spacing: 3px; text-transform: uppercase; margin: 0; font-weight: 400;
         }
-        #q-step-error p {
-            font-size: 13px;
-            color: #666;
-            margin: 0;
-            line-height: 1.6;
+        #q-step-error p { font-size: 13px; color: var(--c-muted); margin: 0; line-height: 1.6; }
+
+        /* ── Footer ── */
+        .q-powered-footer {
+            background: var(--c-surface); padding: 14px 20px;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            flex-shrink: 0; border-top: 1px solid var(--c-line); text-decoration: none;
         }
-        .q-quantic-logo {
-            height: 22px;
-            filter: brightness(0);
-        }
+        .q-powered-footer span { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c-muted); }
+        .q-quantic-logo { height: 20px; opacity: 0.7; }
     `;
 
 
@@ -731,89 +686,266 @@
             <div class="q-card-ia">
                 <button type="button" class="q-close-ia" id="q-close-btn">&times;</button>
                 <div class="q-content-scroll">
+
+                    <!-- Persistent header (all steps) -->
                     <div id="q-header-provador">
                         <h1>Provador Virtual</h1>
-                        <img
-                            src="https://i.ibb.co/5XKzBNxw/amazoni-logo.webp"
-                            alt="AMAZONI GLASSES"
-                            style="height:60px;width:auto;filter:brightness(0);"
-                        />
+                        <img src="https://acdn-us.mitiendanube.com/stores/001/667/065/themes/common/logo-3679032508185390437-1777516093-aa08e8228166836ab3115e127c601ffb1777516093.png" alt="Amazoni" style="height:56px;width:auto;filter:brightness(0);"/>
                     </div>
-                    <div id="q-step-upload">
-                        <div class="q-form-row">
-                            <label>Seu Celular</label>
+
+                    <!-- Main step -->
+                    <div id="q-step-photo">
+                        <!-- WhatsApp -->
+                        <div class="q-phone-wrap">
+                            <span class="q-field-label">Seu WhatsApp<span class="q-required-mark">*</span></span>
                             <input type="tel" id="q-phone" class="q-input" placeholder="(11) 99999-9999" maxlength="15">
-                            <div id="q-phone-error" class="q-status-msg">Insira um número válido</div>
+                            <div id="q-phone-error" class="q-status-msg">N&#250;mero inv&#225;lido</div>
                             <div id="q-provas-restantes" class="q-provas-msg"></div>
                         </div>
 
-                        <div class="q-form-row" id="q-photo-selector-group" style="display:none;">
-                            <label>Selecione a foto da peça:</label>
-                            <div id="q-product-images-container" style="display:flex; gap:15px; justify-content:center;"></div>
+                        <!-- Photo section -->
+                        <p class="q-section-label">Envie sua foto</p>
+                        <div class="q-tip-box">
+                            <i class="ph ph-lightbulb"></i>
+                            <span>Use uma foto n&#237;tida, de frente, com boa ilumina&#231;&#227;o.</span>
                         </div>
 
-                        <div id="q-upload-row">
-                            <div id="q-trigger-upload">
-                                <i class="ph ph-camera-plus"></i>
-                                <span>Enviar Foto</span>
-                                <input type="file" id="q-real-input" accept="image/*" style="display:none">
-                            </div>
-                            <div id="q-pre-view">
-                                <img id="q-pre-img">
+                        <!-- Face frame -->
+                        <div class="q-face-frame" id="q-face-frame">
+                            <div class="q-face-corner q-face-corner-tl"></div>
+                            <div class="q-face-corner q-face-corner-tr"></div>
+                            <div class="q-face-corner q-face-corner-bl"></div>
+                            <div class="q-face-corner q-face-corner-br"></div>
+                            <img id="q-pre-img" alt="Sua foto">
+                            <div class="q-face-placeholder" id="q-face-placeholder">
+                                <i class="ph ph-user-circle" style="font-size:80px;color:#d4d4d4;"></i>
                             </div>
                         </div>
 
+                        <!-- Upload buttons -->
+                        <div class="q-upload-btns">
+                            <button class="q-upload-btn" id="q-btn-camera">
+                                <i class="ph ph-camera"></i> Tirar foto
+                            </button>
+                            <button class="q-upload-btn" id="q-btn-gallery">
+                                <i class="ph ph-image"></i> Da galeria
+                            </button>
+                            <input type="file" id="q-camera-input" accept="image/*" capture="user" style="display:none">
+                            <input type="file" id="q-gallery-input" accept="image/*" style="display:none">
+                        </div>
+
+                        <!-- Terms -->
                         <label class="q-terms-row">
                             <input type="checkbox" id="q-accept-terms">
-                            <span>Ao continuar, concordo com os <a href="http://provoulevou.com.br/termos.html" target="_blank">Termos e Condições</a></span>
+                            <span>Concordo com os <a href="http://provoulevou.com.br/termos.html" target="_blank">Termos e Condi&#231;&#245;es</a></span>
                         </label>
 
-                        <button class="q-btn-black" id="q-btn-generate" disabled>Provar óculos</button>
+                        <div id="q-validation-hint" class="q-validation-hint"></div>
+                        <button class="q-btn-black" id="q-btn-generate">Provar &#243;culos</button>
                     </div>
 
+                    <!-- PIX -->
                     <div id="q-step-pix">
                         <h2>Prova Extra</h2>
-                        <p class="q-pix-subtitle">Você atingiu o limite de 3 provas grátis.<br>Pague R$1 via PIX para gerar mais uma:</p>
+                        <p class="q-pix-subtitle">Limite de 3 provas atingido.<br>Pague R$1 via PIX para mais uma:</p>
                         <p style="font-size: 11px; color: var(--c-muted); margin: 8px 0 0; line-height: 1.5; text-align: center;">&#8505;&#65039; Cobran&#231;a feita pela Provou Levou, n&#227;o pela loja</p>
                         <div class="q-pix-qr"><img id="q-pix-qr-img" alt="QR Code PIX"></div>
                         <div class="q-pix-copiacola">
-                            <input type="text" id="q-pix-code" readonly placeholder="Código PIX...">
+                            <input type="text" id="q-pix-code" readonly placeholder="C&#243;digo PIX...">
                             <button id="q-pix-copy-btn">Copiar</button>
                         </div>
                         <div id="q-pix-status-msg" class="q-pix-status q-pix-waiting">Aguardando pagamento...</div>
                         <p class="q-pix-cancel" id="q-pix-cancel">Cancelar</p>
                     </div>
 
+                    <!-- Loading -->
                     <div id="q-loading-box">
-                        <div>Gerando Prova Virtual...</div>
+                        <div class="q-loading-texts">
+                            <div class="q-loading-t1">Gerando sua prova...</div>
+                            <a href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=amazoni" target="_blank" class="q-loading-t2">
+                                <span>Powered by</span>
+                                <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" alt="Provou Levou">
+                            </a>
+                        </div>
                         <div class="q-loading-bar"><div></div></div>
                     </div>
 
+                    <!-- Resultado -->
                     <div id="q-step-result">
+                        <span class="q-res-title">Veja como ficou em voc&ecirc;</span>
                         <div id="q-result-img-col">
                             <img id="q-final-view-img">
                         </div>
                         <div id="q-result-actions-col">
-                            <span class="q-res-title">Provador Virtual</span>
-                            <div class="q-res-note"></div>
-                            <div id="q-provas-restantes-result" class="q-provas-msg" style="text-align:center;margin-bottom:8px;"></div>
-                            <button class="q-btn-outline" id="q-btn-back">Voltar ao Produto</button>
-                            <p class="q-res-mobile-only" id="q-retry-btn">Tentar outra foto</p>
+                            <div class="q-fakebuy" id="q-fakebuy"></div>
+                            <div class="q-result-prodinfo" id="q-result-prodinfo" style="display:none;">
+                                <div class="q-result-prodname" id="q-result-prodname"></div>
+                                <div class="q-result-prodprice" id="q-result-prodprice"></div>
+                                <div class="q-scarcity" id="q-scarcity" style="display:none;"><i class="ph-bold ph-fire"></i> APENAS <strong id="q-scarcity-n"></strong>&nbsp;UNIDADES RESTANTES</div>
+                            </div>
+                            <div class="q-seals" id="q-seals" style="display:none;">
+                                <div class="q-seal"><i class="ph-fill ph-shield-check"></i><span>Compra<br>Segura</span></div>
+                                <div class="q-seal"><i class="ph-fill ph-lock-key"></i><span>Pagamento<br>Seguro</span></div>
+                            </div>
+                            <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">Comprar Agora</button>
+                            <div id="q-related-products" style="display:none;">
+                                <h4>Veja tamb&eacute;m</h4>
+                                <div class="q-related-grid" id="q-related-grid"></div>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Erro -->
                     <div id="q-step-error">
-                        <h2>Provador fora do ar</h2>
-                        <p>Voltamos em breve &#x1F64F;</p>
+                        <h2>ALTA DEMANDA</h2>
+                        <p>Aguarde alguns segundos para tentar novamente.</p>
                         <button class="q-btn-outline" id="q-error-back">Voltar ao Produto</button>
                     </div>
-                    </div>
+
                 </div>
-                <a href="https://provoulevou.com.br/?utm_source=widget&utm_medium=parceiro&utm_campaign=amazoni" target="_blank" rel="dofollow noopener" class="q-powered-footer">
+                <a href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=amazoni" target="_blank" class="q-powered-footer">
                     <span>Powered by</span>
-                    <img src="https://provoulevou.com.br/assets/provoulevou-logo.png" class="q-quantic-logo" alt="Provou Levou - Provador Virtual com IA">
+                    <img src="https://i.ibb.co/MD3B4FQf/Logo-provou-preto-1.png" class="q-quantic-logo" alt="Provou Levou">
                 </a>
             </div>
         </div>
     `;
+
+
+    // ─── INIT ─────────────────────────────────────────────────────────────────────
+
+
+    // ─── CTA DE COMPRA NO RESULTADO ───────────────────────────────────────────────
+
+    // Caminho do checkout da Nuvemshop. Se na loja o checkout direto não abrir,
+    // troque para '/comprar/' por '/carrinho' (1 linha) — é o único ponto a validar ao vivo.
+    var Q_CHECKOUT_URL = '/comprar/';
+
+    function getMainPrice() {
+        // 1) preço exibido na página (vários temas Nuvemshop)
+        var sel = '.js-price-display, [data-product-price], .product__price .price, .js-product-price, .price-display';
+        var el = document.querySelector(sel);
+        if (el) {
+            var t = (el.getAttribute('data-product-price') || el.textContent || '').trim();
+            if (t && /\d/.test(t)) {
+                // normaliza "R$ 289,00" / "28900" -> "R$ 289,00"
+                if (/^\d+$/.test(t)) { var n = (parseInt(t,10)/100).toFixed(2).replace('.',','); return 'R$ ' + n; }
+                return t.replace(/\s+/g,' ');
+            }
+        }
+        // 2) fallback: data-variants do produto principal (mesmo formato dos "Veja também")
+        var dv = document.querySelector('[data-variants]');
+        if (dv) {
+            try { var v = JSON.parse(dv.getAttribute('data-variants'))[0]; if (v && v.price_short) return v.price_short; } catch (e) {}
+        }
+        return '';
+    }
+
+    function findStoreBuyBtn() {
+        return document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"], button[type="submit"].js-addtocart');
+    }
+
+    // Acha o form de produto real (o que tem o input add_to_cart = product_id)
+    function getProductForm() {
+        var f = document.getElementById('product_form');
+        if (f && f.querySelector('input[name="add_to_cart"]')) return f;
+        var inp = document.querySelector('input[name="add_to_cart"]');
+        if (inp && inp.closest('form')) return inp.closest('form');
+        return document.querySelector('form.js-product-form');
+    }
+
+    // Compra de verdade: submete uma CÓPIA do form do produto (POST real).
+    // A Nuvemshop só adiciona ao carrinho via POST — o GET antigo abria o
+    // carrinho vazio. O clone não tem o AJAX do tema, então faz POST nativo:
+    // servidor adiciona o item e redireciona pro carrinho JÁ com o produto.
+    function buyNow() {
+        // Tracking: registra o clique em "Comprar Agora" (marca carrinho_adicionado na prova)
+        try {
+            var _tp = (document.getElementById('q-phone') || {}).value || '';
+            var _td = (document.querySelector('h1.product__title,.product-single__title,h1') || {}).innerText || document.title || '';
+            fetch('https://n8n.segredosdodrop.com/webhook/pl-provador-buy-click', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: _tp, origin: location.origin, produto: _td }) }).catch(function () {});
+        } catch (e) {}
+        var src = getProductForm();
+        if (src) {
+            var clone = document.createElement('form');
+            clone.method = 'post';
+            clone.action = src.getAttribute('action') || '/comprar/';
+            clone.style.display = 'none';
+            src.querySelectorAll('input, select, textarea').forEach(function (el) {
+                if (!el.name) return;
+                if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
+                var h = document.createElement('input');
+                h.type = 'hidden'; h.name = el.name; h.value = el.value;
+                clone.appendChild(h);
+            });
+            if (!clone.querySelector('[name="quantity"]')) {
+                var q = document.createElement('input');
+                q.type = 'hidden'; q.name = 'quantity'; q.value = '1';
+                clone.appendChild(q);
+            }
+            document.body.appendChild(clone);
+            clone.submit();
+            return;
+        }
+        // Fallback: botão nativo da loja
+        var sb = findStoreBuyBtn();
+        if (sb) { try { sb.click(); } catch (e) {} }
+    }
+
+    // Escassez — número estável por produto (não muda a cada refresh)
+    function scarcityCount(name) {
+        var h = 5381, s = String(name || '');
+        for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+        return 2 + (h % 6); // 2..7
+    }
+    // Notificações de compra (prova social)
+    var Q_FAKE_NAMES = ['Ana C.','Carlos M.','Mariana S.','João P.','Beatriz R.','Pedro A.','Juliana F.','Lucas T.','Fernanda L.','Rafael O.','Camila N.','Bruno G.','Larissa D.','Gabriel V.','Patrícia H.','Thiago B.','Aline M.','Rodrigo S.','Vanessa P.','Felipe C.','Letícia M.','Marcos A.'];
+    var Q_FAKE_WHEN = ['agora mesmo','há 1 minuto','há 2 minutos','há 4 minutos','há 6 minutos','há 9 minutos','há 12 minutos'];
+    var _fakeBuyTimer = null;
+    function _showFakeBuy() {
+        var step = document.getElementById('q-step-result');
+        var el = document.getElementById('q-fakebuy');
+        if (!el || !step || step.style.display === 'none') return;
+        var nm = Q_FAKE_NAMES[Math.floor(Math.random() * Q_FAKE_NAMES.length)];
+        var wh = Q_FAKE_WHEN[Math.floor(Math.random() * Q_FAKE_WHEN.length)];
+        el.innerHTML = '<i class="ph-fill ph-shopping-bag"></i><div><span style="font-size:12.5px;color:var(--c-ink);"><strong>' + nm + '</strong> comprou este produto</span><span>' + wh + ' &middot; compra verificada</span></div>';
+        el.classList.add('show');
+        clearTimeout(el._hideT);
+        el._hideT = setTimeout(function () { el.classList.remove('show'); }, 4500);
+    }
+    function startFakeBuy() {
+        stopFakeBuy();
+        setTimeout(_showFakeBuy, 3000);
+        _fakeBuyTimer = setInterval(_showFakeBuy, 12000);
+    }
+    function stopFakeBuy() {
+        if (_fakeBuyTimer) { clearInterval(_fakeBuyTimer); _fakeBuyTimer = null; }
+        var el = document.getElementById('q-fakebuy'); if (el) el.classList.remove('show');
+    }
+
+    function populateBuyCta() {
+        var btn = document.getElementById('q-btn-buy-now');
+        var trust = document.getElementById('q-seals');
+        if (!btn) return;
+        // Nome + valor do produto acima do botão
+        var price = getMainPrice();
+        var prodName = (document.querySelector('h1.product__title,.product-single__title,h1') || {}).innerText || document.title || '';
+        var info = document.getElementById('q-result-prodinfo');
+        var nameEl = document.getElementById('q-result-prodname');
+        var priceEl = document.getElementById('q-result-prodprice');
+        if (nameEl) nameEl.textContent = (prodName || '').trim();
+        if (priceEl) priceEl.textContent = price || '';
+        if (info && ((prodName || '').trim() || price)) info.style.display = 'block';
+        // Escassez
+        var sc = document.getElementById('q-scarcity');
+        var scn = document.getElementById('q-scarcity-n');
+        if (sc && scn && (prodName || '').trim()) { scn.textContent = scarcityCount(prodName); sc.style.display = 'flex'; }
+        // Notificações de compra
+        startFakeBuy();
+        btn.style.display = 'flex';
+        if (trust) trust.style.display = 'flex';
+        btn.onclick = buyNow;
+    }
 
 
     // ─── INIT ─────────────────────────────────────────────────────────────────────
@@ -826,28 +958,28 @@
             return;
         }
 
-        const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap';
-        fontLink.rel = 'stylesheet';
-        document.head.appendChild(fontLink);
+        // Fontes (async, não bloqueia render)
 
-
-        if (!window.phosphorIconsLoaded) {
-            const ph = document.createElement('script');
-            ph.src = 'https://unpkg.com/@phosphor-icons/web';
-            document.head.appendChild(ph);
-            window.phosphorIconsLoaded = true;
-        }
-
+        // Phosphor Icons — carregado lazily na primeira abertura do modal
+        // (não carrega na init para não impactar o tempo de carregamento da página)
 
         const styleTag = document.createElement('style');
         styleTag.textContent = styles;
         document.head.appendChild(styleTag);
 
-
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = html;
         document.body.appendChild(modalContainer);
+
+        // Usa a MESMA FONTE da loja no provador (em vez de Bebas Neue / DM Sans)
+        try {
+            var _bodyF = getComputedStyle(document.body).fontFamily;
+            var _h = document.querySelector('h1.product__title,.product-single__title,h1,h2');
+            var _headF = _h ? getComputedStyle(_h).fontFamily : _bodyF;
+            var _root = document.documentElement;
+            if (_bodyF) _root.style.setProperty('--font-body', _bodyF);
+            if (_headF) _root.style.setProperty('--font-display', _headF);
+        } catch (e) {}
 
 
         // ── Botão imagem PNG ──
@@ -858,10 +990,7 @@
         openBtn.innerHTML = stampImageHTML;
 
 
-        // IMPORTANTE: containers SEM swiper vêm primeiro — no mobile, se o selo
-        // cai dentro de `.js-product-slide` (slide do Swiper), o gesto de swipe
-        // do tema engole o tap e o botão nunca abre.
-        const imgContainers = ['[data-store^="product-image-"]', '.product-image-column', '.product__media-wrapper', '.product-gallery__media', '.product-image-main', '.product-media-container', '.product-gallery', '.product-single__media', '.media-gallery', '.js-swiper-product', '.product__media', '[data-media-id]', '.product__media-item', '.js-product-slide'];
+        const imgContainers = ['.js-product-slide', '.product-image-column', '.js-swiper-product', '[data-store^="product-image-"]', '.product__media-wrapper', '.product-gallery__media', '.product__media', '.product-image-main', '.product-media-container', '[data-media-id]', '.product__media-item', '.product-gallery', '.product-single__media', '.media-gallery'];
 
         function tryPlaceTriggerBtn() {
             // 1ª prioridade: container que tenha <img> dentro (evita cair em slide de vídeo)
@@ -941,30 +1070,100 @@
             openModal();
         });
 
-        // Posiciona acima do botão de compra — prioriza posições FORA da linha
-        // quantidade/submit (evita conflito com handlers do tema e largura restrita).
-        const productForm = document.querySelector('form.js-product-form, form#product_form');
-        const variantsContainer = document.querySelector('.js-product-variants');
-        const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
-        if (variantsContainer) {
-            variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
-        } else if (productForm) {
-            productForm.parentNode.insertBefore(inlineBtn, productForm);
-        } else if (buyBtn) {
-            buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
+        // Posiciona acima do botão de compra. Amazoni tem 2: form principal + sticky bar (rodapé no scroll).
+        // Coloca em AMBOS — clona o botão p/ o segundo container.
+        function makeInlineClone() {
+            const clone = inlineBtn.cloneNode(true);
+            clone.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+                applyProduct(detectProduct(prodName));
+                populateImageSelector();
+                openModal();
+            });
+            return clone;
         }
-        const genBtn = document.getElementById('q-btn-generate');
-        const uploadStep = document.getElementById('q-step-upload');
+        function placeInlineBtn() {
+            const allBuy = Array.from(document.querySelectorAll('[data-store="product-buy-button"]'));
+            if (allBuy.length) {
+                let placed = false;
+                allBuy.forEach(buyContainer => {
+                    if (buyContainer.parentNode.querySelector(':scope > .q-inline-wrapper-amazoni')) return;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'q-inline-wrapper-amazoni';
+                    wrapper.style.width = '100%';
+                    wrapper.appendChild(!inlineBtn.parentNode ? inlineBtn : makeInlineClone());
+                    buyContainer.parentNode.insertBefore(wrapper, buyContainer);
+                    placed = true;
+                });
+                return placed;
+            }
+            // Fallback: por seletor de botão
+            const buyBtn = document.querySelector(
+                '.js-prod-submit-form, ' +
+                '.js-addtocart:not(.js-addtocart-placeholder-btn), ' +
+                '.btn-add-to-cart, ' +
+                '[data-component="product.add-to-cart"], ' +
+                '.product-buy-button button, .product-buy button'
+            );
+            if (buyBtn) {
+                const target = buyBtn.closest('[data-store="product-buy-button"], .product-buy, .row, form') || buyBtn.parentElement;
+                target.parentNode.insertBefore(inlineBtn, target);
+                return true;
+            }
+            const variantsContainer = document.querySelector('.js-product-variants');
+            if (variantsContainer) {
+                variantsContainer.parentNode.insertBefore(inlineBtn, variantsContainer.nextSibling);
+                return true;
+            }
+            return false;
+        }
+        if (!placeInlineBtn()) {
+            // Theme pode renderizar form via JS depois — retry
+            let _t = 0;
+            const _iv = setInterval(() => {
+                _t++;
+                if (placeInlineBtn() || _t >= 12) clearInterval(_iv);
+            }, 500);
+        }
+        const genBtn      = document.getElementById('q-btn-generate');
+        const nextBtn     = null; // single-step flow — no next button
+        const phoneStep   = null;
+        const photoStep   = document.getElementById('q-step-photo');
+        const uploadStep  = photoStep; // alias for PIX/error refs
 
-        const closeBtn = document.getElementById('q-close-btn');
-        const backBtn = document.getElementById('q-btn-back');
-        const retryBtn = document.getElementById('q-retry-btn');
-        const realInput = document.getElementById('q-real-input');
-        const triggerUpload = document.getElementById('q-trigger-upload');
-        const phoneInput = document.getElementById('q-phone');
+        const closeBtn    = document.getElementById('q-close-btn');
+        const backBtn     = document.getElementById('q-btn-back');
+        const retryBtn    = document.getElementById('q-retry-btn');
+        const cameraInput = document.getElementById('q-camera-input');
+        const galleryInput= document.getElementById('q-gallery-input');
+        const phoneInput  = document.getElementById('q-phone');
 
+        // ── Pré-preenche último número usado (localStorage) ──
+        const _PL_LAST_PHONE = 'pl_last_phone';
+        try {
+            const saved = localStorage.getItem(_PL_LAST_PHONE);
+            if (saved && /^\d{10,11}$/.test(saved)) {
+                const m = saved.match(/(\d{2})(\d{4,5})(\d{4})/);
+                if (m) phoneInput.value = '(' + m[1] + ') ' + m[2] + '-' + m[3];
+            }
+        } catch (_) {}
+        function _savePhoneIfValid() {
+            const nums = phoneInput.value.replace(/\D/g, '');
+            if (/^\d{10,11}$/.test(nums)) {
+                try { localStorage.setItem(_PL_LAST_PHONE, nums); } catch (_) {}
+            }
+        }
+        phoneInput.addEventListener('blur', _savePhoneIfValid);
+        const preImg      = document.getElementById('q-pre-img');
+        const facePlaceholder = document.getElementById('q-face-placeholder');
+
+        // keep realInput alias so PIX code still works
+        const realInput   = galleryInput;
 
         let userPhoto = null;
+        let pixPaymentId = null;
         let selectedProductImgUrl = '';
 
         // Upgrade Nuvemshop CDN URLs to 1024px version
@@ -1027,33 +1226,21 @@
         function populateImageSelector() {
             const imgs = extractImages();
             const group = document.getElementById('q-photo-selector-group');
-
-            group.style.display = 'none';
+            if (group) group.style.display = 'none';
             selectedProductImgUrl = imgs[0] || '';
-            return;
-        }
-
-        // Scripts do tema (appPlanweb na Amazoni) fazem
-        // `body.innerHTML = body.innerHTML.replaceAll(...)` e destacam o nosso
-        // modal do DOM. Nossa referência continua válida (handlers preservados),
-        // só precisa ser re-anexada ao novo body antes de abrir.
-        // CRÍTICO: o re-parse também cria uma CÓPIA "morta" do modal (sem
-        // listeners) no novo body. Se deixarmos as duas, getElementById
-        // retorna a cópia morta primeiro e quebra botões internos (upload de
-        // foto, gerar etc.). Removemos qualquer duplicata antes de re-anexar.
-        function ensureModalInDom() {
-            const existing = document.getElementById('q-modal-ia');
-            if (existing && existing !== modal) existing.remove();
-            if (!modal.isConnected) document.body.appendChild(modal);
-            // NÃO removemos as cópias dos botões (selo/inline) criadas pelo
-            // re-parse: elas são o que o usuário vê e clica. Nossa delegação
-            // global no document trata o clique nelas independente de listeners.
         }
 
         function openModal() {
-            ensureModalInDom();
+            // Lazy-load Phosphor Icons na primeira abertura
+            if (!window.phosphorIconsLoaded) {
+                var ph = document.createElement('script');
+                ph.src = 'https://unpkg.com/@phosphor-icons/web';
+                document.head.appendChild(ph);
+                window.phosphorIconsLoaded = true;
+            }
             modal.style.display = 'flex';
             lockBodyScroll();
+            // Mostra contador imediatamente (só por IP) ao abrir o modal
             if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
         }
 
@@ -1061,6 +1248,7 @@
         function closeModal() {
             modal.style.display = 'none';
             unlockBodyScroll();
+            try { stopFakeBuy(); } catch (e) {}
         }
 
 
@@ -1069,7 +1257,7 @@
         }
 
 
-        function handleTriggerClick(e) {
+        openBtn.onclick = (e) => {
             if (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1078,20 +1266,11 @@
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
-        }
-
-        openBtn.addEventListener('click', handleTriggerClick, true);
-
-        // Delegação global como fallback — captura cliques em qualquer instância
-        // dos botões (selo ou inline), mesmo que o tema re-renderize o DOM.
-        document.addEventListener('click', function (e) {
-            const t = e.target && e.target.closest && e.target.closest('.q-btn-trigger-ia, .q-btn-inline-provador');
-            if (t) handleTriggerClick(e);
-        }, true);
+        };
 
 
         closeBtn.onclick = () => closeModal();
-        backBtn.onclick = () => closeModal();
+        if (backBtn) backBtn.onclick = () => closeModal();
 
 
         modal.addEventListener('click', (e) => {
@@ -1099,21 +1278,79 @@
         });
 
 
-        retryBtn.onclick = () => {
+        if (retryBtn) retryBtn.onclick = () => {
             document.getElementById('q-step-result').style.display = 'none';
-            document.getElementById('q-step-upload').style.display = 'block';
+            photoStep.style.display = 'flex';
             document.querySelector('.q-card-ia').classList.remove('is-result');
             userPhoto = null;
-            document.getElementById('q-pre-view').style.display = 'none';
+            pixPaymentId = null;
+            preImg.style.display = 'none';
+            if (facePlaceholder) facePlaceholder.style.display = 'flex';
             checkFields();
         };
 
+        // Camera / gallery buttons
+        document.getElementById('q-btn-camera').onclick = function() { cameraInput.click(); };
+        document.getElementById('q-btn-gallery').onclick = function() { galleryInput.click(); };
+        document.getElementById('q-face-frame').onclick = function() { galleryInput.click(); };
 
-        triggerUpload.onclick = () => realInput.click();
+        function loadRelatedProducts() {
+            var grid = document.getElementById('q-related-grid');
+            var section = document.getElementById('q-related-products');
+            if (!grid || !section) return;
+
+            var items = document.querySelectorAll('.js-swiper-related .js-item-product');
+            if (!items.length) items = document.querySelectorAll('.js-item-product');
+            var products = [];
+
+            items.forEach(function(item) {
+                if (products.length >= 3) return;
+                var container = item.querySelector('[data-variants]');
+                if (!container) return;
+                try {
+                    var variants = JSON.parse(container.getAttribute('data-variants'));
+                    if (!variants || !variants.length) return;
+                    var v = variants[0];
+                    var imgRaw = v.image_url || '';
+                    var img = imgRaw ? 'https:' + imgRaw.replace(/\\/g, '').replace('-1024-1024.webp', '-480-0.webp') : '';
+                    var price = v.price_short || '';
+                    // Name from img alt (Nuvemshop sets it reliably)
+                    var imgEl = item.querySelector('img[alt]');
+                    var name = imgEl ? imgEl.getAttribute('alt').trim() : '';
+                    // Link from any anchor pointing to /produtos/
+                    var linkEl = item.querySelector('a[href*="/produtos/"]');
+                    var link = linkEl ? linkEl.getAttribute('href') : '';
+                    if (img && (name || price)) {
+                        products.push({ name: name, img: img, price: price, link: link });
+                    }
+                } catch(e) {}
+            });
+
+            if (!products.length) return;
+
+            while (grid.firstChild) grid.removeChild(grid.firstChild);
+            products.forEach(function(p) {
+                var a = document.createElement('a');
+                a.className = 'q-related-card';
+                a.href = p.link || '#';
+                a.target = '_blank';
+                var img = document.createElement('img');
+                img.src = p.img;
+                img.alt = p.name;
+                img.loading = 'lazy';
+                var nameEl = document.createElement('span');
+                nameEl.className = 'q-related-card-name';
+                nameEl.textContent = p.name;
+                a.appendChild(img);
+                a.appendChild(nameEl);
+                grid.appendChild(a);
+            });
+            section.style.display = 'block';
+        }
 
         function showError() {
             var lb = document.getElementById('q-loading-box');
-            var su = document.getElementById('q-step-upload');
+            var su = photoStep;
             var se = document.getElementById('q-step-error');
             if (lb) lb.style.display = 'none';
             if (su) su.style.display = 'none';
@@ -1126,16 +1363,16 @@
         phoneInput.addEventListener('input', function (e) {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
-            checkFields();
+            checkPhoneStep();
         });
-
         // ── Contador de provas restantes (debounced) ──
         let _provasDebounce;
         async function _checkProvasRestantes() {
             const _els = document.querySelectorAll('.q-provas-msg');
             if (!_els.length) return;
             const nums = phoneInput.value.replace(/\D/g, '');
-            const phoneOk = (nums.length === 10 || nums.length === 11) && /^[1-9][1-9]/.test(nums) && (nums.length === 10 || nums[2] === '9');
+            const phoneOk = isValidBRPhone(nums);
+            // Phone vazio/incompleto → manda '0' pra pegar só o ip_count.
             const phone = phoneOk ? '55' + nums : '0';
             try {
                 const r = await fetch(WEBHOOK_CHECK_LIMIT, {
@@ -1150,7 +1387,7 @@
                     const _txt = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
                     _els.forEach(el => { el.textContent = _txt; el.classList.remove('is-warn'); });
                 } else {
-                    _els.forEach(el => { el.textContent = 'Limite de 3 provas atingido — pague R$1 via PIX para mais uma.'; el.classList.add('is-warn'); });
+                    _els.forEach(el => { el.textContent = ''; el.classList.remove('is-warn'); });   // limite: nao avisa na tela inicial; PIX so ao enviar a foto
                 }
             } catch(_) { _els.forEach(el => { el.textContent = ''; el.classList.remove('is-warn'); }); }
         }
@@ -1161,36 +1398,50 @@
 
 
 
-        function checkFields() {
+        function flashError(targetEl, hintMsg) {
+            var hint = document.getElementById('q-validation-hint');
+            if (hint) {
+                hint.textContent = '\u26A0\uFE0F ' + hintMsg;
+                hint.classList.add('is-visible');
+            }
+            if (targetEl) {
+                targetEl.classList.add('is-error', 'q-shake');
+                setTimeout(function(){ targetEl.classList.remove('q-shake'); }, 600);
+                try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+                if (targetEl.focus) setTimeout(function(){ targetEl.focus(); }, 350);
+            }
+        }
+        function checkPhoneStep() {
             const nums = phoneInput.value.replace(/\D/g, '');
-            const phoneOk = (nums.length === 10 || nums.length === 11) && /^[1-9][1-9]/.test(nums) && (nums.length === 10 || nums[2] === '9');
+            const phoneOk = isValidBRPhone(nums);
             document.getElementById('q-phone-error').style.display = (phoneInput.value.length > 0 && !phoneOk) ? 'block' : 'none';
             phoneInput.style.borderColor = (phoneInput.value.length > 0 && !phoneOk) ? '#ef4444' : 'var(--q-border)';
-
-            genBtn.disabled = !(userPhoto && phoneOk && document.getElementById('q-accept-terms').checked);
+            checkFields();
         }
 
-
-        ['q-h-val', 'q-w-val', 'q-cin-val', 'q-quad-val'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', checkFields);
-        });
+        function checkFields() {
+            const nums = phoneInput.value.replace(/\D/g, '');
+            const phoneOk = isValidBRPhone(nums);
+            /* aggressive validation: botão sempre clicável */
+        }
 
         document.getElementById('q-accept-terms').onchange = checkFields;
 
+        function handlePhotoSelected(file) {
+            if (!file) return;
+            userPhoto = file;
+            const rd = new FileReader();
+            rd.onload = ev => {
+                preImg.src = ev.target.result;
+                preImg.style.display = 'block';
+                if (facePlaceholder) facePlaceholder.style.display = 'none';
+                checkFields();
+            };
+            rd.readAsDataURL(file);
+        }
 
-        realInput.onchange = (e) => {
-            userPhoto = e.target.files[0];
-            if (userPhoto) {
-                const rd = new FileReader();
-                rd.onload = ev => {
-                    document.getElementById('q-pre-img').src = ev.target.result;
-                    document.getElementById('q-pre-view').style.display = 'block';
-                    checkFields();
-                };
-                rd.readAsDataURL(userPhoto);
-            }
-        };
+        cameraInput.onchange  = (e) => handlePhotoSelected(e.target.files[0]);
+        galleryInput.onchange = (e) => handlePhotoSelected(e.target.files[0]);
 
 
         function resizeImage(fileOrBlob, maxSize) {
@@ -1230,16 +1481,62 @@
             document.getElementById('q-step-pix').style.display = 'none';
         }
 
+        // ── Reaproveitamento de PIX pendente ──
+        // Evita criar um novo QR a cada abertura do modal: se há PIX pendente do
+        // mesmo telefone gerado há menos de 25min, reaproveita e continua polando.
+        const _PIX_LS_KEY = 'pl_pix_pending_v1';
+        const _PIX_TTL_MS = 25 * 60 * 1000; // 25 min (PIX MP expira em 30min)
+        function _pixLoadPending(phone) {
+            try {
+                const raw = localStorage.getItem(_PIX_LS_KEY);
+                if (!raw) return null;
+                const arr = JSON.parse(raw);
+                const now = Date.now();
+                const valid = arr.filter(p => p.phone === phone && (now - p.ts) < _PIX_TTL_MS);
+                return valid[0] || null;
+            } catch(_) { return null; }
+        }
+        function _pixSavePending(phone, payment_id, qr_code, qr_code_base64) {
+            try {
+                const raw = localStorage.getItem(_PIX_LS_KEY);
+                let arr = [];
+                try { arr = raw ? JSON.parse(raw) : []; } catch(_) {}
+                // Limpa expirados
+                const now = Date.now();
+                arr = arr.filter(p => (now - p.ts) < _PIX_TTL_MS && p.phone !== phone);
+                arr.push({ phone, payment_id, qr_code, qr_code_base64, ts: now });
+                localStorage.setItem(_PIX_LS_KEY, JSON.stringify(arr));
+            } catch(_) {}
+        }
+        function _pixClearPending(phone) {
+            try {
+                const raw = localStorage.getItem(_PIX_LS_KEY);
+                if (!raw) return;
+                let arr = JSON.parse(raw);
+                arr = arr.filter(p => p.phone !== phone);
+                localStorage.setItem(_PIX_LS_KEY, JSON.stringify(arr));
+            } catch(_) {}
+        }
+
         async function createPixAndPoll() {
             showPixScreen();
+            const phone = '55' + phoneInput.value.replace(/\D/g, '');
             try {
-                const resp = await fetch(WEBHOOK_PIX, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: 'cliente@provoulevou.com.br', phone: '55' + phoneInput.value.replace(/\D/g, '') })
-                });
-                const pix = await resp.json();
-                if (!pix.payment_id || !pix.qr_code) throw new Error('PIX inválido');
+                let pix;
+                const pending = _pixLoadPending(phone);
+                if (pending) {
+                    // Reaproveita PIX pendente
+                    pix = { payment_id: pending.payment_id, qr_code: pending.qr_code, qr_code_base64: pending.qr_code_base64 };
+                } else {
+                    const resp = await fetch(WEBHOOK_PIX, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: 'cliente@provoulevou.com.br', phone, loja: 'amazoni', origin: location.origin })
+                    });
+                    pix = await resp.json();
+                    if (!pix.payment_id || !pix.qr_code) throw new Error('PIX inválido');
+                    _pixSavePending(phone, pix.payment_id, pix.qr_code, pix.qr_code_base64);
+                }
 
                 document.getElementById('q-pix-qr-img').src = 'data:image/png;base64,' + pix.qr_code_base64;
                 document.getElementById('q-pix-code').value = pix.qr_code;
@@ -1254,10 +1551,12 @@
                         const st = await sr.json();
                         if (st.status === 'approved') {
                             stopPixPolling();
+                            _pixClearPending(phone);
                             document.getElementById('q-pix-status-msg').textContent = 'Pagamento confirmado!';
                             document.getElementById('q-pix-status-msg').className = 'q-pix-status q-pix-approved';
                             setTimeout(() => {
                                 hidePixScreen();
+                                pixPaymentId = pix.payment_id;
                                 runGeneration();
                             }, 1200);
                         }
@@ -1266,7 +1565,7 @@
             } catch (e) {
                 hidePixScreen();
                 uploadStep.style.display = 'block';
-                alert('Erro ao gerar PIX. Tente novamente.');
+                showError();
             }
         }
 
@@ -1287,113 +1586,155 @@
 
         // ── GERAÇÃO PRINCIPAL ──
         async function runGeneration() {
-            const keyToUse = window.PROVOU_LEVOU_API_KEY;
-            if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
-                alert("Erro: API Key não configurada neste script.");
-                return;
-            }
 
-            const prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
-            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+            if (runGeneration._busy) return;
 
-            uploadStep.style.display = 'none';
-            document.getElementById('q-loading-box').style.display = 'block';
+            runGeneration._busy = true;
 
             try {
-                const fd = new FormData();
-                fd.append('person_image', userPhoto, 'person.jpg');
-                fd.append('whatsapp', '55' + phoneInput.value.replace(/\D/g, ''));
-                fd.append('phone_raw', phoneInput.value);
-                fd.append('product_name', prodName);
-                fd.append('product_url', window.location.href);
-                fd.append('product_type', currentProduct.category);
-                fd.append('product_fit', currentProduct.fit);
-                fd.append('api_key', keyToUse);
-
-                if (currentProduct.category === 'top') {
-                    fd.append('height', '');
-                    fd.append('weight', '');
-                } else {
-                    fd.append('height', '');
-                    fd.append('weight', '');
-                    fd.append('cintura', '');
-                    fd.append('quadril', '');
+                const keyToUse = window.PROVOU_LEVOU_API_KEY;
+                if (!keyToUse || keyToUse.includes("COLOQUE_A_CHAVE_AQUI")) {
+                    showError();
+                    return;
                 }
 
-                // Coleta até 4 fotos do produto: 1ª como binary (compat), 2ª-4ª como base64 text.
-                // 1ª = prodImg (escolhida pelo cliente ou default); demais = extractImages() exceto a 1ª.
-                let allProdImgs = [];
-                if (prodImg) allProdImgs.push(prodImg);
+                const prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
+                const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+
+                uploadStep.style.display = 'none';
+                document.getElementById('q-loading-box').style.display = 'flex';
+
                 try {
-                    if (typeof extractImages === 'function') {
-                        const extra = extractImages();
-                        for (const u of extra) {
-                            const cleanU = String(u || '').split('?')[0];
-                            if (!allProdImgs.some(p => String(p).split('?')[0] === cleanU)) {
-                                allProdImgs.push(u);
-                            }
-                        }
-                    }
-                } catch (_) {}
-                allProdImgs = allProdImgs.slice(0, 4);
-                console.log('[PL Amazoni] Enviando', allProdImgs.length, 'fotos do produto');
-                for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
-                    try {
-                        const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
-                        if (_pi === 0) {
-                            fd.append('product_image', _b, 'product.jpg');
-                        } else {
-                            const _b64 = await new Promise((resolve, reject) => {
-                                const _r = new FileReader();
-                                _r.onloadend = () => resolve(_r.result.split(',')[1]);
-                                _r.onerror = reject;
-                                _r.readAsDataURL(_b);
-                            });
-                            fd.append('product_image_' + (_pi+1) + '_b64', _b64);
-                        }
-                    } catch (_) { }
-                }
-
-                calculateFinalSize();
-
-                const res = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
-
-                const contentType = res.headers.get("content-type") || "";
-                if (contentType.includes("application/json")) {
-                    const data = await res.json();
-                    if (data.error) {
-                        document.getElementById('q-loading-box').style.display = 'none';
-                        document.getElementById('q-step-upload').style.display = 'block';
-                        if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
-                            alert("App desativado nesta loja");
-                        } else {
-                            alert(data.error);
-                        }
+                    // Guard: re-valida telefone antes de submeter (evita whatsapp vazio)
+                    const _finalNums = (phoneInput.value || '').replace(/\D/g, '');
+                    if (typeof isValidBRPhone === 'function' && !isValidBRPhone(_finalNums)) {
+                        try { document.getElementById('q-loading-box').style.display = 'none'; } catch(_) {}
+                        try { uploadStep.style.display = 'block'; } catch(_) {}
+                        try { genBtn.disabled = false; } catch(_) {}
+                        try { phoneInput.focus(); } catch(_) {}
                         return;
                     }
-                }
+const fd = new FormData();
+                    fd.append('person_image', userPhoto, 'person.jpg');
+                    fd.append('whatsapp', '55' + phoneInput.value.replace(/\D/g, ''));
+                    fd.append('phone_raw', phoneInput.value);
+                    fd.append('product_name', prodName);
+                    fd.append('product_url', window.location.href);
+                    fd.append('product_type', currentProduct.category);
+                    fd.append('product_fit', currentProduct.fit);
+                    fd.append('api_key', keyToUse);
+                    if (pixPaymentId) fd.append('pix_payment_id', pixPaymentId);
 
-                if (res.ok) {
-                    const blob = await res.blob();
+                    if (currentProduct.category === 'top') {
+                        fd.append('height', '');
+                        fd.append('weight', '');
+                    } else {
+                        fd.append('height', '');
+                        fd.append('weight', '');
+                        fd.append('cintura', '');
+                        fd.append('quadril', '');
+                    }
+
+                    // Coleta até 4 fotos do produto: 1ª como binary (compat), 2ª-4ª como base64 text.
+                    // 1ª = prodImg (escolhida pelo cliente ou default); demais = extractImages() exceto a 1ª.
+                    let allProdImgs = [];
+                    if (prodImg) allProdImgs.push(prodImg);
+                    try {
+                        if (typeof extractImages === 'function') {
+                            const extra = extractImages();
+                            for (const u of extra) {
+                                const cleanU = String(u || '').split('?')[0];
+                                if (!allProdImgs.some(p => String(p).split('?')[0] === cleanU)) {
+                                    allProdImgs.push(u);
+                                }
+                            }
+                        }
+                    } catch (_) {}
+                    allProdImgs = allProdImgs.slice(0, 4);
+                    console.log('[PL Amazoni] Enviando', allProdImgs.length, 'fotos do produto');
+                    for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
+                        try {
+                            const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
+                            if (_pi === 0) {
+                                fd.append('product_image', _b, 'product.jpg');
+                            } else {
+                                const _b64 = await new Promise((resolve, reject) => {
+                                    const _r = new FileReader();
+                                    _r.onloadend = () => resolve(_r.result.split(',')[1]);
+                                    _r.onerror = reject;
+                                    _r.readAsDataURL(_b);
+                                });
+                                fd.append('product_image_' + (_pi+1) + '_b64', _b64);
+                            }
+                        } catch (_) { }
+                    }
+
+                    calculateFinalSize();
+
+                    const res = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
+
+                    const contentType = res.headers.get("content-type") || "";
+                    if (contentType.includes("application/json")) {
+                        const data = await res.json();
+                        if (data.error) {
+                            document.getElementById('q-loading-box').style.display = 'none';
+                            photoStep.style.display = 'flex';
+                            if (data.error === "Chave invalida, vencida ou inativa." || data.error.includes("vencida ou inativa")) {
+                                showError();
+                            } else {
+                                alert(data.error);
+                            }
+                            return;
+                        }
+                    }
+
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        document.getElementById('q-loading-box').style.display = 'none';
+                        document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
+                        document.querySelector('.q-card-ia').classList.add('is-result');
+                        document.getElementById('q-step-result').style.display = 'flex';
+                        populateBuyCta();
+                        if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
+                    } else if (res.status === 401 || res.status === 403) {
+                        document.getElementById('q-loading-box').style.display = 'none';
+                        photoStep.style.display = 'flex';
+                        showError();
+                    } else { throw new Error(); }
+                } catch (e) {
                     document.getElementById('q-loading-box').style.display = 'none';
-                    document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
-                    document.querySelector('.q-card-ia').classList.add('is-result');
-                    document.getElementById('q-step-result').style.display = 'flex';
-                    if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
-                } else if (res.status === 401 || res.status === 403) {
-                    document.getElementById('q-loading-box').style.display = 'none';
-                    document.getElementById('q-step-upload').style.display = 'block';
-                    alert("App desativado nesta loja");
-                } else { throw new Error(); }
-            } catch (e) {
-                document.getElementById('q-loading-box').style.display = 'none';
-                document.getElementById('q-step-upload').style.display = 'block';
-                alert('Ocorreu um erro ao processar sua imagem (ou chave/servidor indisponíveis). Tente novamente.');
+                    photoStep.style.display = 'flex';
+                    showError();
+                }
+        
+
+            } finally {
+
+                runGeneration._busy = false;
+
             }
         }
 
+        
+
         genBtn.onclick = async () => {
+            // Validação agressiva (UI feedback)
+            var _vNums = (phoneInput.value || '').replace(/\D/g, '');
+            var _vPhoneOk = isValidBRPhone(_vNums);
+            var _vFaceFrame = document.getElementById('q-face-frame');
+            var _vTerms = document.getElementById('q-accept-terms');
+            if (!_vPhoneOk) { flashError(phoneInput, 'Preencha seu WhatsApp para continuar'); return; }
+            if (!userPhoto) { flashError(_vFaceFrame, 'Envie ou tire sua foto para continuar'); return; }
+            if (_vTerms && !_vTerms.checked) { flashError(document.querySelector('.q-terms-row'), 'Aceite os termos para continuar'); return; }
+            var _vHint = document.getElementById('q-validation-hint');
+            if (_vHint) _vHint.classList.remove('is-visible');
+            phoneInput.classList.remove('is-error');
+            if (_vFaceFrame) _vFaceFrame.classList.remove('is-error');
+
             if (!userPhoto) return;
+            const _gNums = (phoneInput.value || '').replace(/\D/g, '');
+            const _gPhoneOk = (_gNums.length === 10 || _gNums.length === 11) && /^[1-9][1-9]/.test(_gNums) && (_gNums.length === 10 || _gNums[2] === '9');
+            if (!_gPhoneOk) { phoneInput.focus(); return; }
 
             const phone = '55' + phoneInput.value.replace(/\D/g, '');
             genBtn.disabled = true;
@@ -1407,8 +1748,7 @@
                 const data = await resp.json();
                 if (data.limited) {
                     genBtn.disabled = false;
-                    alert('Você atingiu o limite de provas gratuitas.');
-                    genBtn.disabled = false;
+                    createPixAndPoll();
                     return;
                 }
             } catch (_) {
