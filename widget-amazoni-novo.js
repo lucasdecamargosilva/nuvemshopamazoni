@@ -1265,7 +1265,68 @@
             selectedProductImgUrl = imgs[0] || '';
         }
 
+        // ── Detecção de rosto: foto do óculos no rosto vira a referência principal ──
+        // Roda no navegador (FaceDetector nativo do Chromium; fallback MediaPipe via CDN).
+        // Varre a galeria do produto (extractImages) e coleta as fotos com rosto. Fallback
+        // seguro: se nada detectar ou der erro, mantém as fotos default — sem regressão.
+        var faceDetectPromise = null, _faceUrls = [], _faceDet = null, _faceDetTried = false;
+        async function getFaceDetector() {
+            if (_faceDetTried) return _faceDet;
+            _faceDetTried = true;
+            try {
+                if ('FaceDetector' in window) { _faceDet = { native: new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 }) }; return _faceDet; }
+            } catch (e) {}
+            try {
+                var vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs');
+                var fileset = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm');
+                var det = await vision.FaceDetector.createFromOptions(fileset, {
+                    baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite' },
+                    runningMode: 'IMAGE'
+                });
+                _faceDet = { mp: det };
+            } catch (e) { _faceDet = null; }
+            return _faceDet;
+        }
+        function _plLoadCorsImg(url) {
+            return new Promise(function (resolve) {
+                var img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function () { resolve(img); };
+                img.onerror = function () { resolve(null); };
+                img.src = url;
+            });
+        }
+        async function _plImgHasFace(det, img) {
+            try {
+                if (det.native) { var f = await det.native.detect(img); return !!(f && f.length); }
+                if (det.mp) { var r = det.mp.detect(img); return !!(r && r.detections && r.detections.length); }
+            } catch (e) {}
+            return false;
+        }
+        async function _plDetectFaces(urls) {
+            if (!urls || !urls.length) return _faceUrls;
+            var det = await getFaceDetector();
+            if (!det) return _faceUrls;
+            for (var i = 0; i < urls.length && _faceUrls.length < 4; i++) {
+                var img = await _plLoadCorsImg(urls[i]);
+                if (!img) continue;
+                if (await _plImgHasFace(det, img)) _faceUrls.push(urls[i]);
+            }
+            return _faceUrls;
+        }
+        function startFaceDetect() {
+            if (faceDetectPromise) return faceDetectPromise;
+            var _urls = [];
+            try { if (typeof extractImages === 'function') _urls = extractImages().slice(0, 12); } catch (e) {}
+            faceDetectPromise = _plDetectFaces(_urls).then(function (arr) {
+                if (arr && arr.length) { try { console.log('[PL] fotos no rosto detectadas:', arr.length); } catch (e) {} }
+                return arr;
+            }).catch(function () { return _faceUrls; });
+            return faceDetectPromise;
+        }
+
         function openModal() {
+            try { startFaceDetect(); } catch (e) {}
             // Lazy-load Phosphor Icons na primeira abertura
             if (!window.phosphorIconsLoaded) {
                 var ph = document.createElement('script');
@@ -1717,6 +1778,26 @@ const fd = new FormData();
                             }
                         }
                     } catch (_) {}
+                    // Detecção de rosto: manda 1 foto no rosto como PRINCIPAL (o gerador usa pra
+                    // calibrar a proporção/tamanho do óculos) + as fotos de fundo branco (packshot),
+                    // que mostram os detalhes da armação. Assim garante proporção E detalhe.
+                    // Sem rosto detectado → mantém as fotos default (fallback, sem regressão).
+                    try {
+                        if (faceDetectPromise) { await Promise.race([faceDetectPromise, new Promise(function (r) { setTimeout(r, 4000); })]); }
+                        if (_faceUrls && _faceUrls.length) {
+                            var _key = function (u) { return String(u || '').split('?')[0]; };
+                            var _faceKeys = {};
+                            _faceUrls.forEach(function (u) { _faceKeys[_key(u)] = 1; });
+                            var _packshots = allProdImgs.filter(function (u) { return !_faceKeys[_key(u)]; });
+                            var _mix = [];
+                            var _add = function (u) { if (u && !_mix.some(function (x) { return _key(x) === _key(u); })) _mix.push(u); };
+                            _add(_faceUrls[0]);
+                            _packshots.forEach(_add);
+                            _faceUrls.slice(1).forEach(_add);
+                            allProdImgs.forEach(_add);
+                            allProdImgs = _mix;
+                        }
+                    } catch (e) {}
                     allProdImgs = allProdImgs.slice(0, 4);
                     console.log('[PL Amazoni] Enviando', allProdImgs.length, 'fotos do produto');
                     for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
