@@ -1103,6 +1103,7 @@
         inlineBtn.appendChild(inlineBtnText);
 
         inlineBtn.addEventListener('click', (e) => {
+            window.__plBtnSrc = 'carrinho';
             e.preventDefault();
             e.stopPropagation();
             const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
